@@ -1,0 +1,6 @@
+interface:
+  display_name: "Mify Image Gen"
+  short_description: "Generate/edit images through Mify gpt-image-2"
+  icon_small: "./assets/imagegen-small.svg"
+  icon_large: "./assets/imagegen.png"
+  default_prompt: "Use $mify-imagegen to generate or edit an image through Mify gpt-image-2."

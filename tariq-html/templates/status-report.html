@@ -1,0 +1,357 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: status-report
+  Weekly status / project status / incident timeline.
+  Headline color = lemon-green (on-track) / yellow (at-risk) / orange (blocked).
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[PAGE_TITLE — e.g. 项目 X 周报 · 2026-05-W20]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  CN typography renders consistently regardless of installed fonts.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  /* PALETTE — default Swiss for status-report (data-driven).
+     Swap to warm-paper for narrative retros / human stories. */
+  /* ============================================================
+     TYPE — CJK-safe font stacks. Shared across both palettes.
+     Rationale: any family that may render Chinese must include a CJK
+     fallback (kami's rule). Mono especially — `Menlo, Consolas` alone
+     renders 中文注释 as tofu on Windows. See references/design-tokens.md.
+  ============================================================ */
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --lemon-green: #B5DF4A;
+    --safety-orange: #FF6B00;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+  }
+  /* ── warm-paper alt:
+  :root {
+    --klein: #B85C3E; --lemon-yellow: #E3DACC; --lemon-green: #788C5D;
+    --safety-orange: #C2502C; --ink: #141413; --mute: #87867F;
+    --bg: #FAF9F5; --card: #FFFFFF;
+  } ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — kami's rule: TsangerJinKai-class CN fonts
+     read denser than Latin; a hair of letter-spacing opens up paragraphs. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+  a { color: var(--klein); text-decoration: none; border-bottom: 1px solid currentColor; }
+
+  .hero { padding: 40px 6vw 24px; background: var(--card); border-bottom: 1px solid var(--ink); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 12px; }
+
+  .status-banner {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 24px; align-items: center;
+    padding: 24px; border: 2px solid var(--ink); margin-top: 16px;
+  }
+  .status-banner.go      { background: var(--lemon-green); }
+  .status-banner.warn    { background: var(--lemon-yellow); }
+  .status-banner.blocked { background: var(--safety-orange); color: white; }
+  .status-banner.blocked a { color: white; }
+  .status-banner .label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; }
+  .status-banner .value { font-size: clamp(28px, 4vw, 44px); font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+  .status-banner .meta-line { font-size: 13px; }
+  @media (max-width: 640px) { .status-banner { grid-template-columns: 1fr; } }
+
+  h1 { font-size: clamp(24px, 3vw, 36px); font-weight: 800; letter-spacing: -0.01em; }
+
+  section { padding: 40px 6vw; border-bottom: 1px solid var(--ink); }
+  .section-head { display: grid; grid-template-columns: 60px 1fr; gap: 16px; margin-bottom: 16px; align-items: baseline; }
+  .section-num { font-size: 36px; font-weight: 900; color: var(--klein); line-height: 1; letter-spacing: -0.04em; }
+  .section-title { font-size: 22px; font-weight: 800; }
+
+  /* lists — verb-led */
+  ul.flat { list-style: none; padding: 0; margin: 0; }
+  ul.flat li {
+    padding: 10px 0; border-bottom: 1px solid #e5e5e0;
+    display: grid; grid-template-columns: 90px 1fr; gap: 16px; align-items: baseline;
+  }
+  ul.flat li:last-child { border-bottom: none; }
+  ul.flat .tag {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--klein); font-weight: 700;
+  }
+  ul.flat.slipped .tag { color: var(--safety-orange); }
+  ul.flat .what b { font-weight: 700; }
+  ul.flat .why { color: var(--mute); font-size: 13px; margin-top: 2px; }
+
+  /* tiny chart with hover tooltip */
+  .chart {
+    background: var(--card); border: 1.5px solid var(--ink);
+    padding: 16px; max-width: 480px; position: relative;
+  }
+  .chart .legend { font-size: 11px; color: var(--mute); margin-bottom: 8px; letter-spacing: 0.05em; }
+  .chart svg { max-width: 100%; height: auto; }
+  .chart svg rect[data-v] { cursor: crosshair; transition: opacity 100ms ease; }
+  .chart svg rect[data-v]:hover { opacity: 0.7; }
+  .chart .tip {
+    position: absolute; pointer-events: none;
+    background: var(--ink); color: var(--card);
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 4px 8px; opacity: 0; transition: opacity 80ms ease;
+    transform: translate(-50%, -100%); white-space: nowrap;
+  }
+  .chart .tip.on { opacity: 1; }
+
+  /* item-list filter pills */
+  .item-filters {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    font-size: 12px; margin-bottom: 16px;
+  }
+  .item-filters button {
+    border: 1px solid var(--ink); padding: 4px 12px; border-radius: 999px;
+    background: var(--card); cursor: pointer; font: inherit; color: var(--ink);
+  }
+  .item-filters button.active { background: var(--ink); color: white; }
+  .item-filters button:hover:not(.active) { background: var(--lemon-yellow); }
+
+  /* incident timeline (vertical) */
+  .timeline-v { border-left: 2px solid var(--ink); margin-left: 18px; padding-left: 24px; position: relative; }
+  .timeline-v .event { position: relative; padding-bottom: 18px; }
+  .timeline-v .event::before {
+    content: ""; position: absolute;
+    left: -32px; top: 4px;
+    width: 12px; height: 12px;
+    background: var(--klein); border: 2px solid var(--ink);
+  }
+  .timeline-v .event.warn::before  { background: var(--lemon-yellow); }
+  .timeline-v .event.crit::before  { background: var(--safety-orange); }
+  .timeline-v .time { font-family: var(--font-mono); font-size: 12px; color: var(--mute); }
+  .timeline-v .what { font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .timeline-v .why { font-size: 13px; color: var(--mute); margin-top: 2px; }
+
+  /* next milestone */
+  .next {
+    background: var(--lemon-yellow); border: 2px solid var(--ink);
+    padding: 16px 20px;
+  }
+  .next .date { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); font-weight: 700; }
+  .next h3 { font-size: 18px; font-weight: 800; margin: 6px 0 12px; }
+  .next ul { padding-left: 20px; font-size: 14px; }
+
+  footer { background: var(--ink); color: #aaa; padding: 24px 6vw; font-size: 12px; }
+  footer a { color: var(--lemon-green); border-bottom-color: var(--lemon-green); }
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="eyebrow">[团队 · WEEK 20 · 2026-05-12 → 2026-05-16]</div>
+    <h1>[项目 / 团队] 周报</h1>
+
+    <!-- swap class to .go / .warn / .blocked depending on actual status -->
+    <div class="status-banner go">
+      <div>
+        <div class="label">STATUS</div>
+        <div class="value">ON&nbsp;TRACK</div>
+      </div>
+      <div class="meta-line">[一句话说明 — 例：里程碑 M3 按 5/22 交付，无 P0 阻塞。]</div>
+      <div>
+        <div class="label">下次更新</div>
+        <div style="font-weight:700">2026-05-23 (Fri)</div>
+      </div>
+    </div>
+  </header>
+
+  <section id="items">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">本周条目</div>
+    </div>
+    <div class="item-filters" data-filter-group>
+      <button class="active" data-filter="all">全部</button>
+      <button data-filter="shipped">已交付</button>
+      <button data-filter="slipped">延期</button>
+      <button data-filter="blocked">阻塞</button>
+    </div>
+    <ul class="flat">
+      <li data-state="shipped">
+        <span class="tag">SHIPPED</span>
+        <div>
+          <div class="what"><b>[Item A]</b> · [一句话说明]</div>
+          <div class="why">[link / PR / issue]</div>
+        </div>
+      </li>
+      <li data-state="shipped">
+        <span class="tag">SHIPPED</span>
+        <div>
+          <div class="what"><b>[Item B]</b> · [一句话说明]</div>
+          <div class="why">[link / PR / issue]</div>
+        </div>
+      </li>
+      <li data-state="shipped">
+        <span class="tag">SHIPPED</span>
+        <div>
+          <div class="what"><b>[Item C]</b> · [一句话说明]</div>
+          <div class="why">[link / PR / issue]</div>
+        </div>
+      </li>
+      <li data-state="slipped" class="slipped-row">
+        <span class="tag" style="color:var(--safety-orange)">SLIPPED</span>
+        <div>
+          <div class="what"><b>[Item D]</b> · 推迟到 [date]</div>
+          <div class="why">[一句话原因 + 缓解动作]</div>
+        </div>
+      </li>
+      <li data-state="blocked" class="slipped-row">
+        <span class="tag" style="color:var(--safety-orange)">BLOCKED</span>
+        <div>
+          <div class="what"><b>[Item E]</b> · 等 [谁/什么]</div>
+          <div class="why">[一句话原因]</div>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div class="section-title">关键指标</div>
+    </div>
+    <div class="chart" id="metric-chart">
+      <div class="legend">[METRIC NAME] · 最近 8 周（hover 看具体值）</div>
+      <svg viewBox="0 0 320 120" xmlns="http://www.w3.org/2000/svg">
+        <!-- data-v=value · data-l=label. Replace with real numbers. -->
+        <rect x="0"   y="60" width="32" height="60"  fill="#002FA7" data-v="60"  data-l="W13"/>
+        <rect x="40"  y="40" width="32" height="80"  fill="#002FA7" data-v="80"  data-l="W14"/>
+        <rect x="80"  y="50" width="32" height="70"  fill="#002FA7" data-v="70"  data-l="W15"/>
+        <rect x="120" y="30" width="32" height="90"  fill="#002FA7" data-v="90"  data-l="W16"/>
+        <rect x="160" y="20" width="32" height="100" fill="#002FA7" data-v="100" data-l="W17"/>
+        <rect x="200" y="35" width="32" height="85"  fill="#002FA7" data-v="85"  data-l="W18"/>
+        <rect x="240" y="15" width="32" height="105" fill="#FF6B00" data-v="105" data-l="W19"/>
+        <rect x="280" y="10" width="32" height="110" fill="#FF6B00" data-v="110" data-l="W20"/>
+        <line x1="0" y1="120" x2="320" y2="120" stroke="#111" stroke-width="2"/>
+      </svg>
+      <div class="tip" id="metric-tip"></div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       INCIDENT VARIANT — uncomment to swap the weekly digest for an incident
+       postmortem. The vertical timeline below is a working component, not just
+       a comment example. Swap section 01 above for this when reporting an
+       incident, then add a root-cause + follow-up section beneath.
+  ═════════════════════════════════════════════════════════════════════════ -->
+  <!--
+  <section>
+    <div class="section-head"><div class="section-num">01</div><div class="section-title">事件时间线</div></div>
+    <div class="timeline-v">
+      <div class="event">         <div class="time">14:02</div><div class="what">监控告警触发</div><div class="why">P95 延迟 > 800ms</div></div>
+      <div class="event warn">    <div class="time">14:08</div><div class="what">Oncall 接手</div></div>
+      <div class="event crit">    <div class="time">14:15</div><div class="what">回滚发布</div></div>
+      <div class="event">         <div class="time">14:23</div><div class="what">指标恢复</div></div>
+    </div>
+  </section>
+  -->
+
+
+  <section>
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-title">下个里程碑</div>
+    </div>
+    <div class="next">
+      <div class="date">[DEADLINE · 2026-05-30]</div>
+      <h3>[里程碑名]</h3>
+      <ul>
+        <li>[要交付的关键 1]</li>
+        <li>[要交付的关键 2]</li>
+        <li>[要交付的关键 3]</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <div>[OWNER] · [DATE] · 周报模板 v1</div>
+  </footer>
+
+  <script>
+    // (1) item filter pills — slice list by shipped / slipped / blocked
+    (function () {
+      var group = document.querySelector('.item-filters[data-filter-group]');
+      if (!group) return;
+      var rows = document.querySelectorAll('#items ul.flat li[data-state]');
+      group.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-filter]');
+        if (!btn) return;
+        group.querySelectorAll('button').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var f = btn.dataset.filter;
+        rows.forEach(function (r) {
+          r.style.display = (f === 'all' || r.dataset.state === f) ? '' : 'none';
+        });
+      });
+    })();
+
+    // (2) chart hover tooltip
+    (function () {
+      var chart = document.getElementById('metric-chart');
+      var tip = document.getElementById('metric-tip');
+      if (!chart || !tip) return;
+      chart.querySelectorAll('rect[data-v]').forEach(function (r) {
+        r.addEventListener('mouseenter', function (e) {
+          tip.textContent = r.dataset.l + ' · ' + r.dataset.v;
+          tip.classList.add('on');
+          var box = chart.getBoundingClientRect();
+          var rb  = r.getBoundingClientRect();
+          tip.style.left = (rb.left - box.left + rb.width / 2) + 'px';
+          tip.style.top  = (rb.top  - box.top  - 4) + 'px';
+        });
+        r.addEventListener('mouseleave', function () { tip.classList.remove('on'); });
+      });
+    })();
+  </script>
+
+</body>
+</html>

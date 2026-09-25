@@ -1,0 +1,4 @@
+interface:
+  display_name: "手绘转飞书白板"
+  short_description: "把手绘图、截图或 HTML 架构图重建为飞书可编辑白板。"
+  default_prompt: "Use $handdraw-to-feishu-board to convert this hand-drawn architecture sketch into an editable Feishu whiteboard."

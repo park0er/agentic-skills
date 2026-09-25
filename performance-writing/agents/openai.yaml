@@ -1,0 +1,6 @@
+interface:
+  display_name: "绩效写作"
+  short_description: "绩效材料收集、规划、多写作者与审阅闭环流程"
+  default_prompt: "Use $performance-writing to run a complete performance-writing workflow from materials collection to final review."
+policy:
+  allow_implicit_invocation: true

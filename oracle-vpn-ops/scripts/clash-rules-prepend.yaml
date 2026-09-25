@@ -1,0 +1,133 @@
+# Clash Verge rules override (prepend) — mirror 奈云 hardcoded 模式
+# 用法：作为 Clash Verge profile 的 rules override 文件；或参考内容烤进服务器 subClashRules。
+# 策略名 PROXY = 本机 Clash 订阅的 proxy-group 名。底层 MATCH,PROXY 作兜底。
+# GEOIP,CN,DIRECT 放 prepend 最后一条,紧贴兜底。
+
+prepend:
+  # ============ 去广告 / 追踪 (REJECT) ============
+  - 'DOMAIN-KEYWORD,admarvel,REJECT'
+  - 'DOMAIN-KEYWORD,admaster,REJECT'
+  - 'DOMAIN-KEYWORD,adsage,REJECT'
+  - 'DOMAIN-KEYWORD,adsmogo,REJECT'
+  - 'DOMAIN-KEYWORD,adsrvmedia,REJECT'
+  - 'DOMAIN-KEYWORD,adwords,REJECT'
+  - 'DOMAIN-KEYWORD,adservice,REJECT'
+  - 'DOMAIN-KEYWORD,domob,REJECT'
+  - 'DOMAIN-KEYWORD,duomeng,REJECT'
+  - 'DOMAIN-KEYWORD,dwtrack,REJECT'
+  - 'DOMAIN-KEYWORD,guanggao,REJECT'
+  - 'DOMAIN-KEYWORD,lianmeng,REJECT'
+  - 'DOMAIN-KEYWORD,omgmta,REJECT'
+  - 'DOMAIN-KEYWORD,openx,REJECT'
+  - 'DOMAIN-KEYWORD,partnerad,REJECT'
+  - 'DOMAIN-KEYWORD,supersonicads,REJECT'
+  - 'DOMAIN-KEYWORD,umeng,REJECT'
+  - 'DOMAIN-KEYWORD,zjtoolbar,REJECT'
+  - 'DOMAIN-SUFFIX,appsflyer.com,REJECT'
+  - 'DOMAIN-SUFFIX,doubleclick.net,REJECT'
+  - 'DOMAIN-SUFFIX,mmstat.com,REJECT'
+
+  # ============ 小米内网 / 公司域名 → DIRECT (Parker 自定义) ============
+  - 'DOMAIN-SUFFIX,mioffice.cn,DIRECT'
+  - 'DOMAIN-SUFFIX,xiaomi.srv,DIRECT'
+  - 'DOMAIN-SUFFIX,xiaomi.com,DIRECT'
+  - 'DOMAIN-SUFFIX,xiaomi.net,DIRECT'
+  - 'DOMAIN-SUFFIX,mi.com,DIRECT'
+  - 'DOMAIN-SUFFIX,olap.srv,DIRECT'
+  - 'DOMAIN-SUFFIX,mi-dun.com,DIRECT'
+  - 'DOMAIN-SUFFIX,mitvos.com,DIRECT'
+  - 'DOMAIN-SUFFIX,multica.ai,DIRECT'
+  - 'DOMAIN-SUFFIX,typeless-static.com,DIRECT'
+
+  # ============ 本地 / 私有 / 局域网 → DIRECT ============
+  - 'DOMAIN-SUFFIX,local,DIRECT'
+  - 'DOMAIN-SUFFIX,localhost,DIRECT'
+  - 'IP-CIDR,10.0.0.0/8,DIRECT,no-resolve'
+  - 'IP-CIDR,172.16.0.0/12,DIRECT,no-resolve'
+  - 'IP-CIDR,192.168.0.0/16,DIRECT,no-resolve'
+  - 'IP-CIDR,127.0.0.0/8,DIRECT,no-resolve'
+  - 'IP-CIDR,100.64.0.0/10,DIRECT,no-resolve'
+  - 'IP-CIDR,17.0.0.0/8,DIRECT,no-resolve'
+  - 'IP-CIDR,198.18.0.0/16,DIRECT,no-resolve'
+  - 'IP-CIDR,224.0.0.0/4,DIRECT,no-resolve'
+  - 'IP-CIDR6,::1/128,DIRECT,no-resolve'
+  - 'IP-CIDR6,fc00::/7,DIRECT,no-resolve'
+  - 'IP-CIDR6,fe80::/10,DIRECT,no-resolve'
+
+  # ============ Apple / iCloud → DIRECT ============
+  - 'DOMAIN,safebrowsing.urlsec.qq.com,DIRECT'
+  - 'DOMAIN-SUFFIX,apple.com,DIRECT'
+  - 'DOMAIN-SUFFIX,apple-cloudkit.com,DIRECT'
+  - 'DOMAIN-SUFFIX,icloud.com,DIRECT'
+  - 'DOMAIN-SUFFIX,icloud-content.com,DIRECT'
+  - 'DOMAIN-SUFFIX,mzstatic.com,DIRECT'
+  - 'DOMAIN-SUFFIX,aaplimg.com,DIRECT'
+  - 'DOMAIN-SUFFIX,cdn-apple.com,DIRECT'
+  - 'DOMAIN-SUFFIX,akadns.net,DIRECT'
+
+  # ============ 国内大厂 (keyword) → DIRECT ============
+  - 'DOMAIN-KEYWORD,baidu,DIRECT'
+  - 'DOMAIN-KEYWORD,alibaba,DIRECT'
+  - 'DOMAIN-KEYWORD,alicdn,DIRECT'
+  - 'DOMAIN-KEYWORD,alipay,DIRECT'
+  - 'DOMAIN-KEYWORD,taobao,DIRECT'
+  - 'DOMAIN-KEYWORD,tencent,DIRECT'
+  - 'DOMAIN-KEYWORD,bilibili,DIRECT'
+  - 'DOMAIN-KEYWORD,weibo,DIRECT'
+  - 'DOMAIN-KEYWORD,douyin,DIRECT'
+  - 'DOMAIN-KEYWORD,bytedance,DIRECT'
+  - 'DOMAIN-KEYWORD,xiaomi,DIRECT'
+  - 'DOMAIN-KEYWORD,huawei,DIRECT'
+  - 'DOMAIN-KEYWORD,netease,DIRECT'
+  - 'DOMAIN-KEYWORD,meituan,DIRECT'
+  - 'DOMAIN-KEYWORD,pinduoduo,DIRECT'
+  - 'DOMAIN-KEYWORD,kuaishou,DIRECT'
+  - 'DOMAIN-KEYWORD,jingdong,DIRECT'
+  - 'DOMAIN-KEYWORD,officecdn,DIRECT'
+
+  # ============ 国内域名后缀 → DIRECT ============
+  - 'DOMAIN-SUFFIX,qq.com,DIRECT'
+  - 'DOMAIN-SUFFIX,weixin.com,DIRECT'
+  - 'DOMAIN-SUFFIX,wechat.com,DIRECT'
+  - 'DOMAIN-SUFFIX,gtimg.com,DIRECT'
+  - 'DOMAIN-SUFFIX,qcloud.com,DIRECT'
+  - 'DOMAIN-SUFFIX,myqcloud.com,DIRECT'
+  - 'DOMAIN-SUFFIX,qpic.cn,DIRECT'
+  - 'DOMAIN-SUFFIX,tenpay.com,DIRECT'
+  - 'DOMAIN-SUFFIX,tmall.com,DIRECT'
+  - 'DOMAIN-SUFFIX,jd.com,DIRECT'
+  - 'DOMAIN-SUFFIX,360buyimg.com,DIRECT'
+  - 'DOMAIN-SUFFIX,iqiyi.com,DIRECT'
+  - 'DOMAIN-SUFFIX,youku.com,DIRECT'
+  - 'DOMAIN-SUFFIX,ykimg.com,DIRECT'
+
+  # ============ 明确走代理的海外服务 → PROXY ============
+  - 'DOMAIN-KEYWORD,google,PROXY'
+  - 'DOMAIN-KEYWORD,youtube,PROXY'
+  - 'DOMAIN-KEYWORD,facebook,PROXY'
+  - 'DOMAIN-KEYWORD,twitter,PROXY'
+  - 'DOMAIN-KEYWORD,instagram,PROXY'
+  - 'DOMAIN-KEYWORD,telegram,PROXY'
+  - 'DOMAIN-SUFFIX,openai.com,PROXY'
+  - 'DOMAIN-SUFFIX,chatgpt.com,PROXY'
+  - 'DOMAIN-SUFFIX,anthropic.com,PROXY'
+  - 'DOMAIN-SUFFIX,claude.ai,PROXY'
+  - 'DOMAIN-SUFFIX,githubusercontent.com,PROXY'
+  - 'DOMAIN-SUFFIX,github.com,PROXY'
+  - 'DOMAIN-SUFFIX,githubcopilot.com,PROXY'
+  - 'DOMAIN-SUFFIX,gemini.google.com,PROXY'
+  - 'DOMAIN-SUFFIX,wikipedia.org,PROXY'
+  - 'DOMAIN-SUFFIX,t.me,PROXY'
+  - 'DOMAIN-SUFFIX,telegram.org,PROXY'
+  - 'IP-CIDR,91.108.4.0/22,PROXY,no-resolve'
+  - 'IP-CIDR,91.108.8.0/21,PROXY,no-resolve'
+  - 'IP-CIDR,91.108.16.0/22,PROXY,no-resolve'
+  - 'IP-CIDR,91.108.56.0/22,PROXY,no-resolve'
+  - 'IP-CIDR,149.154.160.0/20,PROXY,no-resolve'
+
+  # ============ 兜底前的地理判断：国内 IP 直连 ============
+  - 'GEOIP,CN,DIRECT'
+
+append: []
+
+delete: []

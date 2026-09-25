@@ -1,0 +1,52 @@
+{
+  "skill_name": "codex-mify",
+  "evals": [
+    {
+      "id": 0,
+      "name": "setup-intent",
+      "prompt": "我刚装完 Codex Desktop，想让它走公司的 Mify 网关跑 GPT-5.x，不用登 OpenAI 官方。我的 Mify token 已经通过另一个 skill 装在 ~/.config/mify/credentials 里了（export MIFY_API_KEY=sk-baHqK... 的形式）。帮我完成这套配置——要求给出完整步骤但**只做 dry-run**，不要真的改我机器的配置文件，我会自己决定什么时候 apply。\n\n我用的是 macOS，Codex 是最新版本（2026-04 下载的 DMG）。",
+      "expected_output": "Complete dry-run plan: (1) config.toml with wire_api='responses' + requires_openai_auth=true, (2) LaunchAgent for GUI env with Finder-drag TCC workaround, (3) zsh codex-model function, (4) verification, (5) revert path. Must NOT recommend wire_api='chat' or LiteLLM for this case.",
+      "assertions": [
+        {"text": "Response recommends wire_api = \"responses\" (not chat) for Mify provider"},
+        {"text": "Response recommends requires_openai_auth = true for Desktop UI workaround"},
+        {"text": "Response mentions LaunchAgent (or launchctl setenv) for GUI env persistence of MIFY_API_KEY"},
+        {"text": "Response acknowledges macOS TCC block on ~/Library/LaunchAgents/ writes and provides workaround (Finder drag or Full Disk Access)"},
+        {"text": "Response respects user's dry-run request (no commands that actually modify ~/.codex/, ~/Library/, ~/.zshrc)"},
+        {"text": "Response includes a revert / rollback path for undoing changes"},
+        {"text": "Response does NOT recommend wire_api = \"chat\" anywhere (anti-assertion: would indicate skill miss)"},
+        {"text": "Response does NOT push LiteLLM / translation proxy installation for this basic azure_openai setup case (would indicate over-engineering from Gemini-style hallucination)"}
+      ],
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "wire-api-error",
+      "prompt": "我启动 Codex Desktop 的时候弹了个红色对话框说：\n\n> Invalid configuration: `wire_api = \"chat\"` is no longer supported.\n> How to fix: set `wire_api = \"responses\"` in your provider config.\n> More info: https://github.com/openai/codex/discussions/7782\n\n我 config.toml 里 provider 的 wire_api 写的就是 chat。为什么 Codex 说它不支持？是不是它文档更新不及时？chat completions 不是 OpenAI 一直都有的接口吗？我的 provider 是公司的 Mify 网关，走的是 https://api.llm.mioffice.cn/v1。帮我分析 + 修。",
+      "expected_output": "Identify PR #10157 (Feb 2026) source-code removal as root cause; prescribe wire_api='responses' fix. Reject user's 'docs are stale' theory. Don't suggest downgrading Codex or installing LiteLLM for this azure_openai case.",
+      "assertions": [
+        {"text": "Response correctly identifies Codex source-code removal (PR #10157 or equivalent) as the root cause — NOT documentation staleness"},
+        {"text": "Response explicitly corrects or pushes back on user's implicit theory that 'Codex docs are stale / chat completions is obviously supported'"},
+        {"text": "Response prescribes the fix: set wire_api = \"responses\" in ~/.codex/config.toml's [model_providers.*] block"},
+        {"text": "Response does NOT suggest reverting / downgrading to an older Codex version as a way to keep wire_api=chat working"},
+        {"text": "Response does NOT push LiteLLM or other translation proxy for this user's case (their provider is azure_openai via Mify, which works with responses natively — no proxy needed)"},
+        {"text": "Response provides actionable edit showing the exact line change in config.toml"}
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "model-switch",
+      "prompt": "我 codex 现在默认用 azure_openai/gpt-5.4（走公司网关 Mify），想试试刚发布的 gpt-5.5，但我不确定几件事：\n1. Mify 支不支持 5.5？\n2. 切了会不会坏我当前的配置？\n3. 切回去怎么办？\n\n帮我安全地完成切换 + 验证。最好提供一键回滚的方式。我在 macOS 上用 Codex Desktop + 有时也用 Codex CLI。",
+      "expected_output": "Verifies 5.5 on Mify (via list_models.py or /v1/responses probe). Uses set_codex_model.py / codex-model function (auto-backup + smoke test). Includes Cmd+Q Desktop reload. Provides one-line revert.",
+      "assertions": [
+        {"text": "Response checks / verifies that azure_openai/gpt-5.5 is available on Mify (via list_models.py, /v1/models probe, or explicit confirmation)"},
+        {"text": "Response uses a safe switch method with automatic backup (set_codex_model.py, codex-model zsh function, or explicitly does 'cp config.toml config.toml.bak' before editing)"},
+        {"text": "Response includes a smoke test / verification step after switching (curl /v1/responses, codex exec, or similar)"},
+        {"text": "Response provides an explicit one-command revert / rollback instruction"},
+        {"text": "Response correctly reminds user that Codex Desktop requires Cmd+Q (full quit, not just close window) to pick up config changes"},
+        {"text": "BONUS: Response mentions that gpt-5.5 may be Responses-API-only on Azure (a real quirk discovered in our setup session; not required for pass)"}
+      ],
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Precise Doc Download"
+  short_description: "Manual-only precise document download pipeline"
+  brand_color: "#245BFF"
+  default_prompt: "Use $precise-doc-download to run a faithful local Markdown/media export for this document source."
+policy:
+  allow_implicit_invocation: false

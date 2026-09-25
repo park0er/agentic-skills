@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Rollica · 近__DAYS__天用户使用报告 · __END__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<style>#rollica-usage-report { --ink: var(--viz-fg, #172033);
+      --muted: var(--viz-muted-fg, #667085);
+      --panel: var(--viz-surface, #ffffff);
+      --panel-2: var(--viz-surface-2, #f5f7fb);
+      --line: var(--viz-border, #d9dfeb);
+      --blue: var(--viz-series-1, #1647d8);
+      --yellow: var(--viz-series-2, #f4d64e);
+      --orange: var(--viz-series-3, #f97316);
+      --red: var(--viz-series-4, #d92d20);
+      --green: var(--viz-series-5, #16845b);
+      color: var(--ink);
+      font-family: "Noto Sans SC", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.5;
+    }
+    #rollica-usage-report * { box-sizing: border-box; }
+    #rollica-usage-report .hero {
+      background: linear-gradient(130deg, #111827 0%, #172554 56%, #1647d8 100%);
+      color: white; border-radius: 22px; padding: 32px; overflow: hidden; position: relative;
+    }
+    #rollica-usage-report .hero:after {
+      content:""; position:absolute; width:270px; height:270px; right:-90px; top:-120px;
+      border-radius:50%; background:#f4d64e; opacity:.92;
+    }
+    #rollica-usage-report .eyebrow { margin:0 0 8px; font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#f4d64e; }
+    #rollica-usage-report h1 { margin:0; max-width:800px; font-size:clamp(28px,5vw,54px); line-height:1.05; letter-spacing:-.035em; }
+    #rollica-usage-report .hero p { max-width:800px; margin:16px 0 0; color:#dbeafe; }
+    #rollica-usage-report .meta { margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; }
+    #rollica-usage-report .pill { border:1px solid rgba(255,255,255,.28); border-radius:999px; padding:6px 10px; font-size:12px; background:rgba(255,255,255,.08); }
+    #rollica-usage-report .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:18px 0; }
+    #rollica-usage-report .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; }
+    #rollica-usage-report .card .k { color:var(--muted); font-size:12px; font-weight:700; }
+    #rollica-usage-report .card .v { margin-top:4px; font-size:32px; font-weight:850; letter-spacing:-.04em; }
+    #rollica-usage-report .card.warn { border-top:4px solid var(--orange); }
+    #rollica-usage-report .card.danger { border-top:4px solid var(--red); }
+    #rollica-usage-report .section { margin-top:26px; }
+    #rollica-usage-report .section-head { display:flex; justify-content:space-between; gap:16px; align-items:end; margin-bottom:10px; }
+    #rollica-usage-report h2 { margin:0; font-size:23px; letter-spacing:-.02em; }
+    #rollica-usage-report .sub { color:var(--muted); font-size:13px; margin:5px 0 0; }
+    #rollica-usage-report .callout { border-left:6px solid var(--yellow); background:var(--panel-2); border-radius:0 14px 14px 0; padding:17px 20px; }
+    #rollica-usage-report .callout strong { color:var(--blue); }
+    #rollica-usage-report .charts { display:grid; grid-template-columns:2fr 1fr; gap:12px; }
+    #rollica-usage-report .chart { min-height:260px; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; }
+    #rollica-usage-report .chart-title { font-weight:800; margin:0 0 6px; }
+    #rollica-usage-report svg { width:100%; display:block; overflow:visible; }
+    #rollica-usage-report .table-wrap { overflow:auto; max-height:650px; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+    #rollica-usage-report table { width:100%; border-collapse:separate; border-spacing:0; font-size:12px; white-space:nowrap; }
+    #rollica-usage-report th { position:sticky; top:0; z-index:4; background:#172554; color:white; text-align:right; padding:10px 9px; border-bottom:1px solid #334155; }
+    #rollica-usage-report th:nth-child(2), #rollica-usage-report th:nth-child(3), #rollica-usage-report td:nth-child(2), #rollica-usage-report td:nth-child(3) { text-align:left; }
+    #rollica-usage-report td { padding:8px 9px; border-bottom:1px solid var(--line); text-align:right; }
+    #rollica-usage-report tbody tr:hover td { background:color-mix(in srgb,var(--yellow) 18%,var(--panel)); }
+    #rollica-usage-report .sticky-rank { position:sticky; left:0; z-index:2; background:var(--panel); }
+    #rollica-usage-report .sticky-name { position:sticky; left:47px; z-index:2; background:var(--panel); box-shadow:5px 0 8px -8px #111827; }
+    #rollica-usage-report th.sticky-rank, #rollica-usage-report th.sticky-name { z-index:6; background:#172554; }
+    #rollica-usage-report .tag { display:inline-block; padding:3px 7px; border-radius:999px; font-size:11px; font-weight:700; }
+    #rollica-usage-report .tag-risk { color:#991b1b; background:#fee2e2; }
+    #rollica-usage-report .tag-warn { color:#9a3412; background:#ffedd5; }
+    #rollica-usage-report .tag-good { color:#065f46; background:#d1fae5; }
+    #rollica-usage-report .tag-neutral { color:#334155; background:#e2e8f0; }
+    #rollica-usage-report .controls { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0; }
+    #rollica-usage-report .form-control, #rollica-usage-report .form-select {
+      min-height:38px; border:1px solid var(--line); border-radius:10px; padding:8px 10px;
+      background:var(--panel); color:var(--ink); font:inherit;
+    }
+    #rollica-usage-report .form-control { min-width:min(100%,320px); flex:1; }
+    #rollica-usage-report .note { font-size:12px; color:var(--muted); }
+    #rollica-usage-report .footer { margin:28px 0 6px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+    #rollica-usage-report a { color:var(--blue); }
+    @media (max-width:900px) {
+      #rollica-usage-report .cards { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      #rollica-usage-report .charts { grid-template-columns:1fr; }
+      #rollica-usage-report .hero { padding:24px; border-radius:16px; }
+    }
+    @media (max-width:520px) {
+      #rollica-usage-report .cards { grid-template-columns:1fr; }
+      #rollica-usage-report .section-head { display:block; }
+    }
+  
+body{margin:0;background:#f5f7fb}#rollica-usage-report{max-width:1600px;margin:auto;padding:24px}
+#rollica-usage-report .nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+#rollica-usage-report .nav a{padding:7px 13px;border:1px solid var(--line);border-radius:99px;background:white;text-decoration:none;font-size:13px}
+#rollica-usage-report .section{scroll-margin-top:15px}#rollica-usage-report .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+#rollica-usage-report button,#rollica-usage-report select,#rollica-usage-report input{font:inherit}
+#rollica-usage-report button{cursor:pointer;border:1px solid var(--line);background:white;border-radius:8px;padding:8px 12px;color:var(--blue)}
+#rollica-usage-report button:hover{background:#edf2ff}#rollica-usage-report :focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+#rollica-usage-report th button{background:none;border:0;color:inherit;padding:0;font-size:inherit}
+#rollica-usage-report .heatwrap{max-height:740px}
+#rollica-usage-report .heat{table-layout:fixed;width:auto;min-width:100%}
+#rollica-usage-report .heat th,#rollica-usage-report .heat td{padding:7px 4px}
+#rollica-usage-report .heat .identity{width:170px;min-width:170px;max-width:170px;position:sticky;left:0;z-index:3;background:white;text-align:left;overflow:hidden;text-overflow:ellipsis}
+#rollica-usage-report .heat th.identity{background:#172554;z-index:7}
+#rollica-usage-report .heat .heatcell{width:34px;min-width:34px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums}
+#rollica-usage-report .heat .heatcell:hover{outline:2px solid var(--orange);outline-offset:-2px}
+#rollica-usage-report .heat tbody tr:hover td.heatcell{background:var(--cell)!important}
+#rollica-usage-report .heat .sum{min-width:62px;width:62px;font-weight:700}
+#rollica-usage-report .weekend{color:#fbd38d}
+#rollica-usage-report .namebtn{border:0;background:none;padding:0;text-align:left;font-weight:700}
+#rollica-usage-report .tiny{font-size:10px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis}
+#rollica-usage-report .legend{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);flex-wrap:wrap;margin:10px 0}
+#rollica-usage-report .swatch{width:16px;height:16px;display:inline-block;border:1px solid #d9dfeb;border-radius:3px}
+#rollica-usage-report .chart{min-width:0}
+#rollica-usage-report .chart svg{height:220px}
+#rollica-usage-report .hint{border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:white;font-size:13px;min-height:20px;margin:8px 0}
+#rollica-usage-report .section-head .sub{max-width:1000px}
+#rollica-usage-report .detailcard{background:#fff;border:1px solid var(--blue);border-radius:16px;padding:22px;margin-top:15px}
+#rollica-usage-report .detailcard[hidden]{display:none}
+#rollica-usage-report .mini-stats{display:flex;flex-wrap:wrap;gap:25px;margin:16px 0}
+#rollica-usage-report .mini-stats strong{display:block;font-size:24px;color:var(--blue)}
+#rollica-usage-report .splitbar{display:flex;height:8px;background:#eee;border-radius:6px;overflow:hidden;min-width:100px;margin-top:5px}
+#rollica-usage-report .splitbar i{background:var(--blue)}#rollica-usage-report .splitbar b{background:var(--orange)}
+#rollica-usage-report .daily-detail{max-height:300px}
+#rollica-usage-report .wide{min-width:970px}
+#rollica-usage-report .muted{color:var(--muted)}
+#rollica-usage-report .notes{font-size:13px;line-height:1.8}
+#rollica-usage-report .notes p{margin:8px 0}
+#rollica-usage-report .zero{color:#98a2b3}
+#rollica-usage-report .tip{position:fixed;z-index:100;background:#172554;color:white;border-radius:8px;padding:9px 12px;pointer-events:none;white-space:pre-line;font-size:12px;max-width:290px;box-shadow:0 3px 12px #17255433}
+#rollica-usage-report .tip[hidden]{display:none}
+@media(max-width:900px){#rollica-usage-report{padding:12px}#rollica-usage-report .cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){#rollica-usage-report .hero{padding:22px}#rollica-usage-report .card{padding:13px}#rollica-usage-report .card .v{font-size:27px}#rollica-usage-report .heat .identity{width:130px;min-width:130px;max-width:130px}#rollica-usage-report .controls>*{max-width:100%;min-width:0}#rollica-usage-report .hero:after{opacity:.3}#rollica-usage-report .hero>*{position:relative;z-index:1}}
+@media print{#rollica-usage-report .table-wrap{max-height:none;overflow:visible}#rollica-usage-report .controls,#rollica-usage-report .nav{display:none}}
+</style></head><body><main id="rollica-usage-report">
+<section class="hero"><p class="eyebrow">Rollica · Usage Review · __DAYS__ Days</p><h1>用户使用排行<br>与每日活跃热力图</h1><p>从整体走势到每一位用户：完整拆分 Work 消息与 Issue 个人评论，观察实际使用量、使用频率和每天的使用节奏。</p><div class="meta"><span class="pill">__START__ → __END__ · __DAYS__ 个完整自然日</span><span class="pill">北京时间 · 全部工作区</span><span class="pill">总量 = Work + Issue</span></div></section>
+<nav class="nav"><a href="#overview">整体概况</a><a href="#trends">每日走势</a><a href="#matrix">用户热力图</a><a href="#ranking">使用排行榜</a><a href="#method">统计口径</a></nav>
+<section id="overview"><div class="cards" id="cards"></div><div class="callout" id="insights"></div></section>
+<section class="section" id="trends"><div class="section-head"><div><h2>每日整体走势</h2><p class="sub">消息量与活跃人数分开绘制。鼠标悬停查看当天数值；图表始终展示全部用户，不随下方筛选变化。</p></div></div><div class="charts"><div class="chart"><p class="chart-title">每日消息量 · <span style="color:var(--blue)">■ Work</span> + <span style="color:var(--orange)">■ Issue</span></p><div id="msg-chart"></div></div><div class="chart"><p class="chart-title">每日活跃用户 · 去重人数</p><div id="active-chart"></div></div></div><details class="card" style="margin-top:12px"><summary>展开每日完整数据表（__DAYS__ 天）</summary><div class="table-wrap"><table id="daily-table"></table></div></details></section>
+<section class="section" id="matrix"><div class="section-head"><div><h2>全量用户逐日热力图</h2><p class="sub">每行一个用户、每天一列，默认按消息总量排序；包含全部零消息用户。点击用户或任意日期格，查看完整个人明细。</p></div><button id="export">导出筛选结果 CSV</button></div>
+<div class="controls"><input class="form-control" id="search" type="search" placeholder="搜索姓名或邮箱" aria-label="搜索姓名或邮箱"><select class="form-select" id="filter" aria-label="用户筛选"><option value="all">全部用户</option><option value="active">期间有使用</option><option value="zero">期间零消息</option><option value="quiet">期间有使用，但最近7天零消息</option><option value="recent">最近7天有使用</option><option value="new">期间新注册</option><option value="both">Work 和 Issue 都使用</option><option value="work">仅使用 Work</option><option value="issue">仅使用 Issue</option></select>
+<select class="form-select" id="metric" aria-label="热力图指标"><option value="total">热力图：总消息</option><option value="work">热力图：Work</option><option value="issue">热力图：Issue</option></select>
+<select class="form-select" id="scale" aria-label="热力图色阶"><option value="row">色阶：个人相对强度（原版）</option><option value="global">色阶：统一绝对分档</option></select>
+<select class="form-select" id="sort" aria-label="排序方式"><option value="total">按总量降序</option><option value="work">按 Work 降序</option><option value="issue">按 Issue 降序</option><option value="active">按活跃天数降序</option><option value="last">按最后活跃降序</option><option value="name">按姓名排序</option></select></div>
+<p class="note" id="result-count"></p><div class="legend" id="legend"></div><div class="hint" id="cell-hint" aria-live="polite">悬停日期格：查看总量、Work、Issue；点击格子：展开用户明细。</div>
+<div class="table-wrap heatwrap"><table class="heat" id="heat-table"><thead></thead><tbody></tbody></table></div>
+<div id="detail" class="detailcard" hidden></div>
+</section>
+<section class="section" id="ranking"><div class="section-head"><div><h2>用户使用排行榜</h2><p class="sub">与上方搜索、筛选和排序联动；可切换 Top 25／Top 50／全部。排名为全量用户的月度总量排名，切换指标不改写原排名。</p></div><select class="form-select" id="limit" aria-label="排行榜数量"><option value="25">Top 25</option><option value="50">Top 50</option><option value="all">全部用户</option></select></div><p class="note" id="rank-count"></p><div class="table-wrap"><table class="wide" id="rank-table"><thead><tr><th>总量排名</th><th>用户</th><th>邮箱</th><th><button data-sort="total">总量 ↓</button></th><th><button data-sort="work">Work ↕</button></th><th><button data-sort="issue">Issue ↕</button></th><th><button data-sort="active">活跃天数 ↕</button></th><th>__DAYS__天日均</th><th>活跃日均</th><th>最后活跃（期间）</th><th>使用类型</th></tr></thead><tbody></tbody></table></div></section>
+<section class="section card notes" id="method"><h2>统计口径与阅读说明</h2>
+<p><strong>时间与范围：</strong>北京时间 __START__ 00:00（含）至 __END_EXCLUSIVE__ 00:00（不含），共 __DAYS__ 天，不含今天的未完整数据；覆盖生产库全部工作区。用户全集为统计结束前已注册且当前仍存在的账号，按规范化邮箱合并，同邮箱多账号合计为一人。</p>
+<p><strong>Work：</strong>用户角色（role=user）、普通消息（message_kind=message），按会话创建者归属；包含当前仍保存在数据库中的 Work / Side Chat 消息。<strong>Issue：</strong>成员作者（author_type=member）发布的评论，按作者归属。AI 回复、Agent 评论及工具事件不计入。本报告统计数据库现存消息记录，不还原已删除记录，也不额外推断导入／复制消息的来源。</p>
+<p><strong>活跃与零消息：</strong>一天至少 1 条上述消息即算 1 个活跃日。“零消息”不代表没有登录、浏览或阅读；“最近7天零消息”不等于流失。活跃日均 = 总量 ÷ 活跃天数；__DAYS__天日均统一除以__DAYS__，新注册用户需结合注册日期理解。</p>
+<p><strong>热力图：</strong>个人相对强度按该用户在当前指标下的单日峰值着色（与原附件一致），只能看个人节奏；统一绝对分档为 0、1–5、6–15、16–30、31–60、61+，适合跨用户比较。灰色“—”表示注册前，不视为零使用。周末日期以暖色标识。</p>
+<p id="identity-note"></p>
+<p><strong>来源：</strong>小米云生产 PostgreSQL（adx_ai_multica）只读查询，数据快照 <span id="observed"></span>。版式参考 <a href="https://rollica.ad.miui.com/miadsagent/issues/28897690-854c-4a42-947e-f5b62e473397">MIA-289 原始 HTML 附件</a>，保留蓝色头图、指标卡片、每日走势、排行榜与可筛选逐日矩阵。此版不含事件前后对比，也不推断版本变更的影响；未创建固定 SQL、自动化或修改数据库。</p>
+</section><footer class="footer">Rollica · 近__DAYS__天使用分析 · __GENERATED__ · 内部用户数据，请仅在授权范围内分享。单文件 HTML，数据已内嵌，不向外部发送查询或用户数据。</footer>
+<div id="tip" class="tip" role="tooltip" hidden></div>
+<script type="application/json" id="report-data">__REPORT_DATA__</script>
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id),data=JSON.parse($("report-data").textContent),fmt=n=>Number(n).toLocaleString("zh-CN"),safe=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dates=Array.from({length:__DAYS__},(_,i)=>new Date(Date.parse(data.start+"T00:00:00Z")+i*86400000).toISOString().slice(0,10));
+const users=data.users.map((u,j)=>{const days=dates.map(()=>({work:0,issue:0,total:0}));u.daily.forEach(([i,w,c])=>{days[i]={work:w,issue:c,total:w+c}});const work=days.reduce((s,x)=>s+x.work,0),issue=days.reduce((s,x)=>s+x.issue,0);return {...u,rank:j+1,days,work,issue,active:u.daily.length,last:u.daily.length?dates[u.daily[u.daily.length-1][0]]:"",recent:days.slice(-7).reduce((s,x)=>s+x.total,0)}});
+const days=dates.map((date,i)=>({date,work:users.reduce((s,u)=>s+u.days[i].work,0),issue:users.reduce((s,u)=>s+u.days[i].issue,0),active:users.filter(u=>u.days[i].total>0).length,workUsers:users.filter(u=>u.days[i].work>0).length,issueUsers:users.filter(u=>u.days[i].issue>0).length}));
+days.forEach(d=>d.total=d.work+d.issue);
+const active=users.filter(u=>u.total>0),total=data.all_work+data.all_issue,peak=days.reduce((a,b)=>a.total>b.total?a:b),top25=users.slice(0,25).reduce((s,u)=>s+u.total,0);
+$("identity-note").textContent="身份合并："+users.reduce((s,u)=>s+u.accounts,0)+" 个账号合并为 "+users.length+" 个邮箱身份；同邮箱多账号合并使用量，名称按数据库聚合值原样保留。未归属消息 "+data.unmatched+" 条。";
+const card=(k,v,desc)=>'<article class="card"><div class="k">'+k+'</div><div class="v">'+v+'</div><div class="note">'+desc+'</div></article>';
+$("cards").innerHTML=card("注册用户全集",fmt(users.length),"截至__END__ · 按邮箱去重")+card("近__DAYS__天有使用",fmt(active.length),"占用户全集 "+(active.length/Math.max(users.length,1)*100).toFixed(1)+"%")+card("消息总量",fmt(total),"Work "+fmt(data.all_work)+" · Issue "+fmt(data.all_issue))+card("日均活跃用户",(days.reduce((s,d)=>s+d.active,0)/__DAYS__).toFixed(1),"__DAYS__个自然日的 DAU 均值")+card("近__DAYS__天零消息",fmt(users.length-active.length),"不等于没有登录或浏览")+card("期间新注册",fmt(users.filter(u=>u.registered>=data.start).length),"按最早账号注册日期判断")+card("最近7天有使用",fmt(users.filter(u=>u.recent>0).length),"__RECENT_START__–__END__")+card("Top 25 消息占比",(top25/Math.max(total,1)*100).toFixed(1)+"%",fmt(top25)+" 条 / "+fmt(total)+" 条");
+$("insights").innerHTML="<strong>本期概览：</strong>"+fmt(active.length)+" 位用户产生 "+fmt(total)+" 条消息，其中 Work 占 "+(data.all_work/Math.max(total,1)*100).toFixed(1)+"%；单日消息峰值出现在 "+peak.date+"（"+fmt(peak.total)+" 条，"+peak.active+" 人活跃）。月度第一名为 "+safe(users[0]?.name||"—")+"（"+fmt(users[0]?.total||0)+" 条）。期间有使用、但最近7天零消息的用户有 "+users.filter(u=>u.total>0&&!u.recent).length+" 位，可通过筛选查看；这里只描述使用记录，不推断原因。";
+$("observed").textContent=new Date(data.observed_at).toLocaleString("zh-CN",{timeZone:"Asia/Shanghai",hour12:false})+"（北京时间）";
+function svgChart(id,arr,mode){
+const w=780,h=220,p={l:42,r:15,t:20,b:36},key=mode==="active"?"active":"total",max=Math.max(...arr.map(d=>d[key]),1),bw=(w-p.l-p.r)/arr.length,x=i=>p.l+bw*(i+.5),y=v=>h-p.b-v/max*(h-p.t-p.b);
+let s='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-label="'+(mode==="active"?"每日活跃人数":"每日Work和Issue消息量")+'">';
+[0,.5,1].forEach(r=>{const v=Math.round(max*r);s+='<line x1="'+p.l+'" y1="'+y(v)+'" x2="'+(w-p.r)+'" y2="'+y(v)+'" stroke="#d9dfeb"/><text x="'+(p.l-6)+'" y="'+(y(v)+4)+'" text-anchor="end" font-size="11" fill="#667085">'+v+'</text>'});
+if(mode==="active")s+='<path d="'+arr.map((d,i)=>(i?"L":"M")+x(i)+","+y(d.active)).join(" ")+'" fill="none" stroke="#f97316" stroke-width="3"/>';
+arr.forEach((d,i)=>{const tip=d.date+"\n总消息 "+fmt(d.total)+" · Work "+fmt(d.work)+" · Issue "+fmt(d.issue)+"\n活跃用户 "+d.active; if(mode==="active")s+='<circle cx="'+x(i)+'" cy="'+y(d.active)+'" r="5" fill="#f97316" data-tip="'+safe(tip)+'"><title>'+safe(tip)+'</title></circle>';else s+='<g data-tip="'+safe(tip)+'"><title>'+safe(tip)+'</title><rect x="'+(x(i)-bw*.34)+'" y="'+y(d.work)+'" width="'+bw*.68+'" height="'+(y(0)-y(d.work))+'" rx="2" fill="#1647d8"/><rect x="'+(x(i)-bw*.34)+'" y="'+y(d.total)+'" width="'+bw*.68+'" height="'+(y(d.work)-y(d.total))+'" rx="2" fill="#f97316"/></g>';if(i%4===0||i===arr.length-1)s+='<text x="'+x(i)+'" y="'+(h-11)+'" text-anchor="middle" font-size="10" fill="#667085">'+d.date.slice(5)+'</text>'});
+$(id).innerHTML=s+"</svg>";
+}
+svgChart("msg-chart",days,"messages");svgChart("active-chart",days,"active");
+$("daily-table").innerHTML="<thead><tr><th>日期</th><th>星期</th><th>Work</th><th>Issue</th><th>总量</th><th>活跃人数</th><th>Work人数</th><th>Issue人数</th></tr></thead><tbody>"+days.map(d=>"<tr><td>"+d.date+"</td><td>"+["日","一","二","三","四","五","六"][new Date(d.date+"T00:00:00Z").getUTCDay()]+"</td><td>"+fmt(d.work)+"</td><td>"+fmt(d.issue)+"</td><td>"+fmt(d.total)+"</td><td>"+d.active+"</td><td>"+d.workUsers+"</td><td>"+d.issueUsers+"</td></tr>").join("")+"</tbody>";
+const kind=u=>u.work&&u.issue?"Work + Issue":u.work?"仅 Work":u.issue?"仅 Issue":"零消息",colours=["#f5f7fb","#e6edff","#bdceff","#88a6f4","#4d76df","#1647d8"];
+function filtered(){const q=$("search").value.trim().toLowerCase(),f=$("filter").value;return users.filter(u=>(!q||(u.name+" "+u.email).toLowerCase().includes(q))&&(f==="all"||f==="active"&&u.total>0||f==="zero"&&u.total===0||f==="quiet"&&u.total>0&&!u.recent||f==="recent"&&u.recent>0||f==="new"&&u.registered>=data.start||f==="both"&&u.work>0&&u.issue>0||f==="work"&&u.work>0&&!u.issue||f==="issue"&&u.issue>0&&!u.work)).sort((a,b)=>{const k=$("sort").value;return k==="name"?a.name.localeCompare(b.name,"zh-CN")||a.rank-b.rank:k==="last"?b.last.localeCompare(a.last)||a.rank-b.rank:b[k]-a[k]||a.rank-b.rank})}
+let current=[],selected=null;
+function render(){
+current=filtered();const metric=$("metric").value,global=$("scale").value==="global";
+$("result-count").textContent="当前显示 "+current.length+" / "+users.length+" 人 · 筛选后总量 "+fmt(current.reduce((s,u)=>s+u.total,0))+" 条 · 表内月度排名保持不变";
+$("legend").innerHTML=(global?"统一绝对分档：":"个人相对峰值：")+colours.map((c,i)=>'<span class="swatch" style="background:'+c+'"></span>'+(global?["0","1–5","6–15","16–30","31–60","61+"][i]:["0",">0–20%","20–40%","40–60%","60–80%","80–100%"][i])).join(" ")+' <span>｜— 尚未注册；日期暖色 = 周末</span>';
+$("heat-table").querySelector("thead").innerHTML='<tr><th class="identity">用户 / 总量排名</th><th class="sum">总量</th><th class="sum">Work</th><th class="sum">Issue</th>'+dates.map(d=>'<th class="heatcell '+([0,6].includes(new Date(d+"T00:00:00Z").getUTCDay())?"weekend":"")+'">'+d.slice(5)+"</th>").join("")+"</tr>";
+$("heat-table").querySelector("tbody").innerHTML=current.map(u=>{const peak=Math.max(...u.days.map(d=>d[metric]),1);return '<tr><td class="identity"><button class="namebtn" data-user="'+u.rank+'">#'+u.rank+" "+safe(u.name)+'</button><span class="tiny" title="'+safe(u.email)+'">'+safe(u.email)+'</span></td><td class="sum">'+fmt(u.total)+'</td><td class="sum">'+fmt(u.work)+'</td><td class="sum">'+fmt(u.issue)+"</td>"+u.days.map((d,i)=>{const v=d[metric],before=dates[i]<u.registered,level=v===0?0:global?(v<=5?1:v<=15?2:v<=30?3:v<=60?4:5):Math.ceil(v/peak*5),bg=before?"#eef0f4":colours[level],tip=u.name+" · "+dates[i]+(before?"\n尚未注册":"\n总量 "+d.total+" · Work "+d.work+" · Issue "+d.issue);return '<td class="heatcell" tabindex="0" role="button" aria-label="'+safe(tip)+'" data-user="'+u.rank+'" data-day="'+i+'" data-tip="'+safe(tip)+'" style="--cell:'+bg+";background:"+bg+";color:"+(level>=4?"#fff":v?"#172554":"#98a2b3")+'">'+(before?"—":v)+"</td>"}).join("")+"</tr>"}).join("");
+renderRank();
+}
+function renderRank(){const lim=$("limit").value,shown=lim==="all"?current:current.slice(0,Number(lim));$("rank-count").textContent="显示 "+shown.length+" / 筛选后 "+current.length+" 人";$("rank-table").querySelector("tbody").innerHTML=shown.map(u=>'<tr><td>'+u.rank+'</td><td><button class="namebtn" data-user="'+u.rank+'">'+safe(u.name)+'</button></td><td>'+safe(u.email)+'</td><td><strong>'+fmt(u.total)+'</strong><div class="splitbar"><i style="width:'+(u.total?u.work/u.total*100:0)+'%"></i><b style="width:'+(u.total?u.issue/u.total*100:0)+'%"></b></div></td><td>'+fmt(u.work)+"</td><td>"+fmt(u.issue)+"</td><td>"+u.active+" / __DAYS__</td><td>"+(u.total/__DAYS__).toFixed(1)+"</td><td>"+(u.active?(u.total/u.active).toFixed(1):"—")+"</td><td>"+(u.last||"—")+'</td><td><span class="tag tag-neutral">'+kind(u)+"</span></td></tr>").join("")}
+function detail(rank,day){const u=users[rank-1];selected=rank;$("detail").hidden=false;$("detail").innerHTML='<div class="section-head"><div><h2>#'+u.rank+" "+safe(u.name)+'</h2><p class="sub">'+safe(u.email)+" · 注册 "+u.registered+" · "+u.accounts+' 个账号</p></div><button id="close-detail">收起明细</button></div><div class="mini-stats"><span>消息总量<strong>'+fmt(u.total)+"</strong></span><span>Work<strong>"+fmt(u.work)+"</strong></span><span>Issue<strong>"+fmt(u.issue)+"</strong></span><span>活跃天数<strong>"+u.active+" / __DAYS__</strong></span><span>最近7天消息<strong>"+u.recent+'</strong></span></div><div id="user-chart"></div><div class="table-wrap daily-detail"><table><thead><tr><th>日期</th><th>Work</th><th>Issue</th><th>总量</th><th>状态</th></tr></thead><tbody>'+u.days.map((x,i)=>'<tr'+(i===day?' style="background:#fff3c4"':"")+"><td>"+dates[i]+"</td><td>"+x.work+"</td><td>"+x.issue+"</td><td>"+x.total+"</td><td>"+(dates[i]<u.registered?"尚未注册":x.total?"有消息":"零消息")+"</td></tr>").join("")+"</tbody></table></div>";svgChart("user-chart",u.days.map((d,i)=>({...d,date:dates[i],active:d.total?1:0})),"messages");$("close-detail").onclick=()=>{$("detail").hidden=true;selected=null};$("detail").scrollIntoView({behavior:"smooth",block:"start"})}
+["search","filter","metric","scale","sort"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",render));$("limit").addEventListener("change",renderRank);
+document.addEventListener("click",e=>{const s=e.target.closest("[data-sort]");if(s){$("sort").value=s.dataset.sort;render();return}const el=e.target.closest("[data-user]");if(el)detail(Number(el.dataset.user),el.dataset.day===undefined?-1:Number(el.dataset.day))});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches("td[data-user]")){e.preventDefault();e.target.click()}});
+function showTip(e){const t=e.target.closest("[data-tip]");if(!t){$("tip").hidden=true;return}$("tip").textContent=t.dataset.tip;$("tip").hidden=false;$("tip").style.left=Math.max(8,Math.min(e.clientX+12,window.innerWidth-310))+"px";$("tip").style.top=Math.min(e.clientY+14,window.innerHeight-100)+"px";if(t.matches("td"))$("cell-hint").textContent=t.dataset.tip.replaceAll("\n"," · ")}
+document.addEventListener("pointermove",showTip);document.addEventListener("pointerleave",()=>{$("tip").hidden=true});document.addEventListener("scroll",()=>{$("tip").hidden=true},true);
+$("export").addEventListener("click",()=>{const cell=x=>'"'+String(/^[=+@-]/.test(String(x??""))?"\u0027"+x:(x??"")).replaceAll('"','""')+'"';const lines=[["月度排名","用户","邮箱","注册日期","账号数","日期","Work","Issue","总量","状态"],...current.flatMap(u=>u.days.map((d,i)=>[u.rank,u.name,u.email,u.registered,u.accounts,dates[i],d.work,d.issue,d.total,dates[i]<u.registered?"尚未注册":d.total?"有消息":"零消息"]))];const url=URL.createObjectURL(new Blob(["\uFEFF"+lines.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}));const a=document.createElement("a");a.href=url;a.download="rollica-__DAYS__days-filtered-__END__.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
+render();
+})();
+</script></main></body></html>
+

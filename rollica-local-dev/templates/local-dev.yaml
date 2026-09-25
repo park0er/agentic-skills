@@ -1,0 +1,47 @@
+# Machine-local Rollica QA / dev memory.
+# The skill reads this file from $MULTICA_CONFIG_HOME/local-dev.yaml
+# or ~/.rollica/local-dev.yaml. Do not commit it into the skill.
+# Secrets stay in env_file. Use ~ for home-relative paths.
+
+# Supported values: persistent-qa | ephemeral
+kind: persistent-qa
+
+checkouts:
+  primary: ~/path/to/Rollica
+  qa: ~/path/to/Rollica-QA-worktree
+
+env_file: ~/path/to/Rollica/.tmp/qa.env
+
+desktop:
+  app_suffix: rollica-211
+  user_data: ~/Library/Application Support/Rollica Canary rollica-211
+  renderer_port: 5385
+  profile: desktop-localhost-18291
+  env_local: ~/path/to/Rollica-QA-worktree/apps/desktop/.env.local
+
+daemon:
+  profile: desktop-localhost-18291
+  binary: ~/path/to/Rollica-QA-worktree/apps/desktop/resources/bin/multica
+  do_not_touch_profiles:
+    - desktop-rollica.ad.miui.com
+
+server:
+  url: http://localhost:18291
+  port: 18291
+  web_url: http://localhost:13211
+  web_port: 13211
+
+postgres:
+  container: multica-postgres-1
+  database: multica_rollica_211
+  user: multica
+
+account:
+  email: qa-owner@example.com
+  workspace_slug: qa-workspace
+  workspace_name: QA Workspace
+  verification_code_env: MULTICA_DEV_VERIFICATION_CODE
+
+production:
+  app: /Applications/Rollica.app
+  profile: desktop-rollica.ad.miui.com

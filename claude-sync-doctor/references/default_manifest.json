@@ -1,0 +1,43 @@
+{
+  "icloudRoot": "~/Library/Mobile Documents/com~apple~CloudDocs/ClaudeSync",
+  "backupRoot": "~/ClaudeSyncBackups/doctor",
+  "statePath": "~/Library/Mobile Documents/com~apple~CloudDocs/ClaudeSync/.doctor/state/{hostname}.json",
+  "entries": [
+    {
+      "id": "claude-home-json",
+      "type": "file",
+      "local": "~/.claude.json",
+      "cloud": "home/.claude.json",
+      "atomicReplaceRisk": true,
+      "containsSecrets": false
+    },
+    {
+      "id": "desktop-config",
+      "type": "file",
+      "local": "~/Library/Application Support/Claude-3p/claude_desktop_config.json",
+      "cloud": "claude3p/claude_desktop_config.json",
+      "atomicReplaceRisk": true,
+      "containsSecrets": true
+    },
+    {
+      "id": "dotclaude",
+      "type": "directory",
+      "local": "~/.claude",
+      "cloud": "dotclaude",
+      "mode": "parent-symlink"
+    },
+    {
+      "id": "desktop-code-sessions",
+      "type": "directory",
+      "local": "~/Library/Application Support/Claude-3p/claude-code-sessions",
+      "cloud": "claude3p/claude-code-sessions"
+    },
+    {
+      "id": "desktop-agent-sessions",
+      "type": "directory",
+      "local": "~/Library/Application Support/Claude-3p/local-agent-mode-sessions",
+      "cloud": "claude3p/local-agent-mode-sessions"
+    }
+  ]
+}
+

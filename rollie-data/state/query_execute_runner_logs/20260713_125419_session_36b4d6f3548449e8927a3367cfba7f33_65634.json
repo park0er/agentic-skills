@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-07-13T12:54:19.551164+08:00",
+  "identifier": "session_36b4d6f3548449e8927a3367cfba7f33",
+  "url": "http://rollie-agents.ad.xiaomi.srv/api/v1/query/dashboard",
+  "method": "POST",
+  "timeout_seconds": 180,
+  "request_body": {
+    "dashboard": "query_xirang_ad_effect",
+    "params": {
+      "time": {
+        "start_time": "2026-07-05T00:00:00+08:00",
+        "end_time": "2026-07-05T23:59:59+08:00",
+        "compare": false
+      },
+      "measures": [
+        "total_fee_effect",
+        "fee_effect",
+        "view",
+        "click"
+      ]
+    },
+    "session_id": "36b4d6f3548449e8927a3367cfba7f33",
+    "cookies_b64": "<redacted>",
+    "skill_id": "rollie-data",
+    "skill_version": "1.0.1"
+  },
+  "response_status": 404,
+  "response_text": "{\"detail\":\"[20002] 会话不存在 | reason: 36b4d6f3548449e8927a3367cfba7f33\"}",
+  "error": "http_error"
+}

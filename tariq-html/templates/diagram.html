@@ -1,0 +1,334 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: diagram (interactive)
+  Inline-SVG flowchart / module map / pipeline.
+  CLICKABLE NODES → sticky detail panel (Tariq pattern #13).
+  No Mermaid, no D3 — hand-authored SVG, semantic shapes.
+  Replace [BRACKETED] placeholders + the DETAIL dict.
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[DIAGRAM_TITLE]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  CN typography renders consistently regardless of installed fonts.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  /* PALETTE — default Swiss for diagram (geometric reads better in Swiss).
+     Warm-paper available below for editorial concept maps. */
+  /* ============================================================
+     TYPE — CJK-safe font stacks. Shared across both palettes.
+     Rationale: any family that may render Chinese must include a CJK
+     fallback (kami's rule). Mono especially — `Menlo, Consolas` alone
+     renders 中文注释 as tofu on Windows. See references/design-tokens.md.
+  ============================================================ */
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --lemon-green: #B5DF4A;
+    --safety-orange: #FF6B00;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --rule: #e3dfd5;
+  }
+  /* ── warm-paper alt:
+  :root {
+    --klein: #B85C3E; --lemon-yellow: #E3DACC; --lemon-green: #788C5D;
+    --safety-orange: #C2502C; --ink: #141413; --mute: #87867F;
+    --bg: #FAF9F5; --card: #FFFFFF; --rule: #D1CFC5;
+  } ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — kami's rule: TsangerJinKai-class CN fonts
+     read denser than Latin; a hair of letter-spacing opens up paragraphs. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 12px; }
+  h1 { font-size: clamp(28px, 4vw, 44px); font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 12px; }
+  h1 em { color: var(--klein); font-style: italic; }
+  .lede { color: var(--mute); max-width: 720px; margin-bottom: 32px; }
+
+  /* two-column: stage on the left, sticky detail panel on the right */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .stage {
+    background: var(--card); border: 2px solid var(--ink);
+    padding: 24px; overflow-x: auto;
+  }
+  .stage svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* SVG nodes — every <g class="node"> is clickable */
+  .node { cursor: pointer; transition: transform 120ms ease; }
+  .node:hover { transform: translateY(-1px); }
+  .node:focus { outline: none; }
+  .node.active rect, .node.active polygon, .node.active path { stroke: var(--klein); stroke-width: 3; }
+  .node text { pointer-events: none; user-select: none; }
+
+  .node-process  { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+  .node-decision { fill: var(--lemon-yellow); stroke: var(--ink); stroke-width: 2; }
+  .node-data     { fill: var(--card); stroke: var(--klein); stroke-width: 2; }
+  .node-error    { fill: var(--safety-orange); stroke: var(--ink); stroke-width: 2; }
+  .node-success  { fill: var(--lemon-green); stroke: var(--ink); stroke-width: 2; }
+  .edge          { stroke: var(--ink); stroke-width: 2; fill: none; }
+  .edge-error    { stroke: var(--safety-orange); stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+  text.label     { font: 600 14px/1 "Helvetica Neue", sans-serif; fill: var(--ink); text-anchor: middle; }
+  text.label.invert { fill: white; }
+  text.sub       { font: 500 11px/1 "SF Mono", Menlo, monospace; fill: var(--mute); text-anchor: middle; }
+  text.edge-label{ font: 500 11px/1 "SF Mono", Menlo, monospace; fill: var(--mute); text-anchor: middle; }
+
+  /* sticky detail panel */
+  aside.panel {
+    position: sticky; top: 24px;
+    background: var(--card); border: 2px solid var(--ink);
+    padding: 20px;
+    min-height: 260px;
+  }
+  aside.panel .hint {
+    font-family: var(--font-mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--mute);
+    margin-bottom: 12px;
+  }
+  aside.panel h3 { font-size: 18px; font-weight: 800; margin: 0 0 4px; line-height: 1.2; }
+  aside.panel .meta { font-family: var(--font-mono); font-size: 11px; color: var(--klein); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  aside.panel p { font-size: 13.5px; color: #333; margin-bottom: 10px; }
+  aside.panel p code { background: #f0eee6; padding: 1px 5px; border-radius: 2px; font-size: 12px; }
+  aside.panel pre {
+    background: var(--ink); color: #eaeaea;
+    font: 12px/1.5 "SF Mono", Menlo, monospace;
+    padding: 10px 12px; border-radius: 2px;
+    overflow-x: auto; white-space: pre;
+  }
+  aside.panel pre:empty { display: none; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 24px;
+    background: var(--card); border: 1px solid var(--ink);
+    padding: 16px 20px; font-size: 12.5px;
+    margin-top: 24px;
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .legend .swatch { display: inline-block; width: 24px; height: 16px; border: 1.5px solid var(--ink); }
+  .legend .swatch.process  { background: var(--card); }
+  .legend .swatch.decision { background: var(--lemon-yellow); }
+  .legend .swatch.data     { background: var(--card); border-color: var(--klein); }
+  .legend .swatch.error    { background: var(--safety-orange); }
+  .legend .swatch.success  { background: var(--lemon-green); }
+
+  .caption { font-size: 13px; color: var(--mute); margin-top: 12px; max-width: 720px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<section>
+
+  <div class="eyebrow">[CONTEXT — e.g. PIPELINE · DEPLOY · 2026-05-16]</div>
+  <h1>[Diagram title with <em>key emphasis</em>]</h1>
+  <p class="lede">[One-line description. Tell the reader the diagram is interactive — click any node to see what runs.]</p>
+
+  <div class="layout">
+
+    <div class="stage">
+      <!--
+        Each clickable element is a <g class="node" data-k="UNIQUE_KEY">
+        with <rect>/<polygon>/<path> + <text class="label" pointer-events:none>.
+        Every data-k MUST have a matching entry in window.DETAIL below.
+      -->
+      <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/>
+          </marker>
+          <marker id="arr-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#FF6B00"/>
+          </marker>
+        </defs>
+
+        <!-- source -->
+        <g class="node" data-k="source">
+          <rect class="node-data" x="20" y="120" width="140" height="80"/>
+          <text class="label" x="90" y="155">[Source]</text>
+          <text class="sub"   x="90" y="175">data</text>
+        </g>
+
+        <!-- process -->
+        <g class="node" data-k="transform">
+          <rect class="node-process" x="220" y="120" width="160" height="80"/>
+          <text class="label" x="300" y="160">[Transform]</text>
+          <text class="sub"   x="300" y="178">~120 ms</text>
+        </g>
+
+        <!-- decision -->
+        <g class="node" data-k="valid">
+          <polygon class="node-decision" points="500,160 580,110 660,160 580,210"/>
+          <text class="label" x="580" y="165">[Valid?]</text>
+        </g>
+
+        <!-- success -->
+        <g class="node" data-k="persist">
+          <rect class="node-success" x="730" y="80" width="140" height="60"/>
+          <text class="label" x="800" y="115">[Persist]</text>
+        </g>
+
+        <!-- error -->
+        <g class="node" data-k="dlq">
+          <rect class="node-error" x="730" y="180" width="140" height="60"/>
+          <text class="label invert" x="800" y="215">[DLQ]</text>
+        </g>
+
+        <!-- edges -->
+        <line class="edge" x1="160" y1="160" x2="220" y2="160" marker-end="url(#arr)"/>
+        <line class="edge" x1="380" y1="160" x2="500" y2="160" marker-end="url(#arr)"/>
+        <line class="edge" x1="660" y1="140" x2="730" y2="115" marker-end="url(#arr)"/>
+        <line class="edge-error" x1="660" y1="180" x2="730" y2="205" marker-end="url(#arr-err)"/>
+        <text class="edge-label" x="690" y="105">yes</text>
+        <text class="edge-label" x="690" y="220">no</text>
+      </svg>
+    </div>
+
+    <aside class="panel">
+      <div class="hint">点击左侧节点 →</div>
+      <h3 id="p-title">[Source]</h3>
+      <div class="meta" id="p-meta">trigger · 0s</div>
+      <p id="p-body">[Default panel body. Filled in from the DETAIL dict on click. Use <code>inline code</code> here freely — body is rendered as innerHTML.]</p>
+      <pre id="p-code">[optional code/yaml/json block — leave empty string if not needed]</pre>
+    </aside>
+
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="swatch data"></span>Data store</div>
+    <div class="item"><span class="swatch process"></span>Process</div>
+    <div class="item"><span class="swatch decision"></span>Decision</div>
+    <div class="item"><span class="swatch success"></span>Success path</div>
+    <div class="item"><span class="swatch error"></span>Error path</div>
+  </div>
+
+  <p class="caption">[Caption — read it left-to-right. Orange dashed = failure path; click any node to see what it actually does.]</p>
+
+</section>
+</div>
+
+<script>
+  // One entry per data-k. body uses innerHTML; code uses textContent.
+  // If a node has no code block, set code: "" — the <pre> hides itself.
+  window.DETAIL = {
+    source: {
+      title: "[Source]",
+      meta: "input · t = 0",
+      body: "[What is this? Where does the data come from? Replace this paragraph.]",
+      code: "[paste schema / sample payload / SQL — or leave empty]"
+    },
+    transform: {
+      title: "[Transform]",
+      meta: "step · ~120 ms",
+      body: "[What does this step do? Any retries / idempotency / side effects?]",
+      code: ""
+    },
+    valid: {
+      title: "[Valid?]",
+      meta: "decision · branches",
+      body: "[What predicate fires here? When does it return false?]",
+      code: ""
+    },
+    persist: {
+      title: "[Persist]",
+      meta: "sink · success",
+      body: "[Where does success-path data land? TTL? indices?]",
+      code: ""
+    },
+    dlq: {
+      title: "[DLQ]",
+      meta: "sink · failure",
+      body: "[How do failures get replayed? Who watches the queue?]",
+      code: ""
+    }
+  };
+
+  (function () {
+    var nodes = document.querySelectorAll(".node");
+    var T = document.getElementById("p-title");
+    var M = document.getElementById("p-meta");
+    var B = document.getElementById("p-body");
+    var C = document.getElementById("p-code");
+
+    function activate(node) {
+      nodes.forEach(function (n) { n.classList.remove("active"); });
+      node.classList.add("active");
+      var d = window.DETAIL[node.dataset.k];
+      if (!d) return;
+      T.textContent = d.title;
+      M.textContent = d.meta;
+      B.innerHTML  = d.body;   // body supports inline <code>, <strong>, etc.
+      C.textContent = d.code || "";
+      C.style.display = d.code ? "block" : "none";
+    }
+
+    nodes.forEach(function (n) {
+      n.addEventListener("click", function () { activate(n); });
+      n.setAttribute("tabindex", "0");
+      n.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(n); }
+      });
+    });
+
+    // pre-activate the first node so the panel is never empty
+    var first = document.querySelector('.node[data-k]');
+    if (first) activate(first);
+  })();
+</script>
+
+</body>
+</html>

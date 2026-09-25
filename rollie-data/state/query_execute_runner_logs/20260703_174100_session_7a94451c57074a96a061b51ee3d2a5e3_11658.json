@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-07-03T17:41:00.937576+08:00",
+  "identifier": "session_7a94451c57074a96a061b51ee3d2a5e3",
+  "url": "http://rollie-agents.ad.xiaomi.srv/api/v1/query/dashboard",
+  "method": "POST",
+  "timeout_seconds": 180,
+  "request_body": {
+    "dashboard": "query_xirang_ad_effect",
+    "params": {
+      "time": {
+        "start_time": "2025-04-01T00:00:00+08:00",
+        "end_time": "2025-05-30T23:59:59+08:00",
+        "compare": false
+      },
+      "filters": {
+        "oper_industry_level1": "IAA买量类"
+      },
+      "split": {
+        "group_by": "media_type",
+        "top": 50,
+        "sort_by": "total_fee_effect"
+      },
+      "measures": [
+        "total_fee_effect"
+      ]
+    },
+    "session_id": "7a94451c57074a96a061b51ee3d2a5e3",
+    "cookies_b64": "<redacted>",
+    "skill_id": "rollie-data",
+    "skill_version": "1.0.1"
+  },
+  "response_status": 504,
+  "response_text": "<html>\r\n<head><title>504 Gateway Time-out</title></head>\r\n<body>\r\n<center><h1>504 Gateway Time-out</h1></center>\r\n<hr><center>openresty</center>\r\n</body>\r\n</html>\r\n",
+  "error": "http_error"
+}

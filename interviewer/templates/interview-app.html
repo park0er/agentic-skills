@@ -1,0 +1,738 @@
+<!doctype html>
+<!-- ============================================================
+  Interviewer Skill · interview-app template
+  Replace 4 [BRACKETED] placeholders, leave the rest unchanged.
+
+  Placeholders (case-sensitive):
+    [INTERVIEW_TITLE]   in <title> + hero h1
+    [INTERVIEW_LEDE]    1-2 sentence description below h1
+    [STORAGE_KEY]       localStorage key, kebab-case (e.g. interviewer-project-retro-v1)
+    [SCHEMA_JSON]       pretty-printed schema JSON inside <script id="schema">
+
+  Data contract: see references/data-contract.md
+  Schema shape: see references/schema-design.md
+  Visual style: warm-paper palette (Tariq variant) — DO NOT swap to Swiss
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[INTERVIEW_TITLE]</title>
+<style>
+  /* CJK-safe font stacks (kami-aligned, mono includes CJK fallback) */
+  :root {
+    --sans:
+      system-ui, -apple-system, "Segoe UI", "Helvetica Neue",
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      Roboto, Helvetica, Arial, sans-serif;
+    --serif:
+      Charter, "Iowan Old Style", ui-serif, Georgia, "Times New Roman", Times,
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  /* Warm-paper palette (Tariq) — non-negotiable for this skill */
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --warn:   #C2502C;
+
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #D1CFC5;
+    --g500:   #87867F;
+    --g700:   #3D3D3A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    font-size: 16px; line-height: 1.55; color: var(--slate); background: var(--ivory);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — opens up CN paragraphs slightly */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+  button { font-family: inherit; cursor: pointer; }
+  textarea { font-family: inherit; }
+  a { color: var(--clay-d); text-decoration: none; border-bottom: 1px solid currentColor; }
+
+  /* ── HEADER (sticky) ─────────────────────────────── */
+  header.appbar {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--paper); border-bottom: 1.5px solid var(--g300);
+    padding: 12px 4vw;
+  }
+  .bar-row {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  .brand {
+    font-family: var(--serif); font-style: italic; font-weight: 500;
+    font-size: 17px; letter-spacing: -0.01em; color: var(--slate);
+  }
+  .brand .v { color: var(--clay); font-style: normal; font-weight: 600; }
+  .progress-block { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
+  .pcount { font-size: 12.5px; color: var(--g500); white-space: nowrap; font-family: var(--mono); }
+  .pcount b { font-size: 17px; font-weight: 700; color: var(--slate); letter-spacing: -0.01em; margin-right: 4px; }
+  .ptrack {
+    flex: 1; min-width: 100px; height: 10px; background: var(--oat);
+    border: 1px solid var(--g300); border-radius: 5px; overflow: hidden;
+  }
+  .pfill {
+    height: 100%; background: var(--olive);
+    transition: width 250ms ease;
+  }
+  .save-state {
+    font-size: 12px; color: var(--g500);
+    display: flex; align-items: center; gap: 6px; min-width: 170px; font-family: var(--mono);
+  }
+  .save-state .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--olive);
+    box-shadow: 0 0 0 0 rgba(120,140,93,0.4);
+    animation: pulse 1.6s infinite;
+  }
+  .save-state.saving .dot { background: var(--clay); }
+  .save-state.error .dot { background: var(--warn); animation: none; }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(120,140,93,0.5); }
+    70%  { box-shadow: 0 0 0 8px rgba(120,140,93,0); }
+    100% { box-shadow: 0 0 0 0 rgba(120,140,93,0); }
+  }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  button.btn {
+    background: var(--paper); border: 1.5px solid var(--g300); color: var(--slate);
+    padding: 6px 12px; font-size: 12.5px; font-weight: 600;
+    transition: background 100ms, border-color 100ms; border-radius: 3px;
+  }
+  button.btn:hover { background: var(--oat); border-color: var(--slate); }
+  button.btn.primary { background: var(--clay); color: var(--paper); border-color: var(--clay); }
+  button.btn.primary:hover { background: var(--clay-d); border-color: var(--clay-d); }
+  button.btn.danger { color: var(--warn); border-color: var(--warn); }
+  button.btn.danger:hover { background: var(--warn); color: var(--paper); }
+
+  /* ── DATA SAFETY BANNER ─────────────────────────── */
+  .banner {
+    padding: 10px 4vw; font-size: 13px; font-weight: 600;
+    display: none;
+  }
+  .banner.show { display: block; }
+  .banner.error { background: var(--warn); color: var(--paper); }
+  .banner.warn  { background: var(--oat); color: var(--clay-d); border-bottom: 1.5px solid var(--clay-d); }
+
+  /* ── MAIN ───────────────────────────────────────── */
+  main { padding: 36px 4vw; max-width: 880px; margin: 0 auto; }
+
+  /* Topic intro */
+  .topic-intro {
+    background: var(--paper); border-left: 4px solid var(--clay); padding: 16px 20px; margin-bottom: 16px;
+    border-radius: 0 3px 3px 0;
+  }
+  .topic-intro .ch {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; font-weight: 700;
+    color: var(--g500); text-transform: uppercase;
+  }
+  .topic-intro h2 {
+    font-family: var(--serif); font-weight: 500; font-size: 22px;
+    margin: 4px 0 8px; letter-spacing: -0.01em; color: var(--slate);
+  }
+  .topic-intro h2 em { color: var(--clay); font-style: italic; }
+  .topic-intro .topic-progress {
+    font-family: var(--mono); font-size: 11px; color: var(--g500); margin-top: 2px; letter-spacing: 0.04em;
+  }
+  .topic-intro p { font-size: 14.5px; color: var(--g700); margin-top: 8px; line-height: 1.65; font-family: var(--serif); font-style: italic; }
+
+  /* Question card */
+  .qcard {
+    background: var(--paper); border: 1.5px solid var(--g300); padding: 28px 28px 22px;
+    border-radius: 4px;
+  }
+  .qcard .meta-line {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .qcard .pos { font-family: var(--mono); font-size: 12px; color: var(--g500); letter-spacing: 0.04em; }
+  .qcard .pos b { color: var(--slate); font-size: 14px; font-weight: 700; }
+  .qcard .kind {
+    padding: 3px 10px; font-size: 11px; letter-spacing: 0.12em; font-weight: 700;
+    background: var(--oat); color: var(--clay-d); font-family: var(--mono); border-radius: 2px;
+  }
+  .qcard .topic-name { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--g500); }
+
+  .qcard h1 {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(22px, 3.4vw, 30px); line-height: 1.3;
+    letter-spacing: -0.012em; margin-bottom: 14px; color: var(--slate);
+  }
+  .qcard h1 em { color: var(--clay); font-style: italic; }
+
+  .qcard .hint {
+    background: var(--g100); border-left: 3px solid var(--olive); padding: 10px 14px;
+    font-size: 13.5px; line-height: 1.6; color: var(--g700); margin-bottom: 18px;
+    font-family: var(--serif); font-style: italic; border-radius: 0 2px 2px 0;
+  }
+  .qcard .hint::before { content: "💡  "; font-style: normal; }
+
+  textarea#answer {
+    width: 100%; min-height: 140px; padding: 14px 16px;
+    border: 1.5px solid var(--g300); background: var(--paper); color: var(--slate);
+    font-size: 15.5px; line-height: 1.6; resize: vertical; border-radius: 3px;
+    transition: border-color 100ms;
+  }
+  textarea#answer:focus {
+    outline: none; border-color: var(--clay);
+    box-shadow: 0 0 0 3px rgba(217,119,87,0.15);
+  }
+
+  .nav-row {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    margin-top: 16px;
+  }
+  .nav-row .grow { flex: 1; }
+  button.nav {
+    padding: 10px 18px; font-size: 13.5px; font-weight: 600;
+    border: 1.5px solid var(--g300); background: var(--paper); color: var(--slate);
+    border-radius: 3px;
+  }
+  button.nav:hover { background: var(--oat); border-color: var(--slate); }
+  button.nav:disabled { opacity: 0.35; cursor: not-allowed; }
+  button.nav:disabled:hover { background: var(--paper); border-color: var(--g300); }
+  button.nav.primary {
+    background: var(--clay); color: var(--paper); border-color: var(--clay);
+  }
+  button.nav.primary:hover { background: var(--clay-d); border-color: var(--clay-d); }
+  button.nav.skip {
+    background: var(--ivory); color: var(--g500); border-style: dashed;
+  }
+
+  /* ── ALL QUESTIONS OVERVIEW ─────────────────────── */
+  .overview {
+    margin: 36px auto 24px; max-width: 880px; padding: 0 4vw;
+  }
+  .ov-toggle {
+    background: none; border: none; padding: 10px 0; font-size: 13px; color: var(--g500);
+    cursor: pointer; font-weight: 700; letter-spacing: 0.04em; font-family: var(--mono);
+    width: 100%; text-align: left; display: flex; align-items: center; gap: 6px;
+  }
+  .ov-toggle:hover { color: var(--clay-d); }
+  .ov-toggle .arrow { display: inline-block; transition: transform 150ms; color: var(--clay); }
+  .ov-toggle.open .arrow { transform: rotate(90deg); }
+  .ov-body { display: none; padding: 12px 0; }
+  .ov-body.open { display: block; }
+
+  .ov-cat { margin-bottom: 20px; }
+  .ov-cat-head {
+    display: flex; align-items: center; gap: 10px; padding: 6px 0; margin-bottom: 8px;
+    border-bottom: 1.5px solid var(--g300);
+  }
+  .ov-cat-head .pill {
+    padding: 3px 10px; font-size: 11px; letter-spacing: 0.12em; font-weight: 700;
+    color: var(--paper); text-transform: uppercase; font-family: var(--mono);
+    background: var(--clay);
+  }
+  .ov-cat-head .name { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 16px; }
+  .ov-cat-head .count { font-family: var(--mono); font-size: 12px; color: var(--g500); margin-left: auto; }
+
+  .ov-topic { margin-bottom: 12px; }
+  .ov-topic-name { font-family: var(--serif); font-weight: 500; font-size: 14px; color: var(--slate); margin-bottom: 4px; padding-left: 8px; }
+  .ov-q-list { padding-left: 18px; display: grid; gap: 4px; }
+  .ov-q {
+    display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 5px 8px;
+    cursor: pointer; transition: background 80ms; border: 1px solid transparent; border-radius: 2px;
+  }
+  .ov-q:hover { background: var(--oat); border-color: var(--g300); }
+  .ov-q.current { background: var(--oat); border-color: var(--clay); font-weight: 700; }
+  .ov-q .badge {
+    width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--g500); background: var(--paper); position: relative;
+  }
+  .ov-q.answered .badge { background: var(--olive); border-color: var(--olive); }
+  .ov-q.answered .badge::after {
+    content: "✓"; color: var(--paper); font-size: 10px; font-weight: 800;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  }
+  .ov-q.skipped .badge { background: var(--g300); }
+  .ov-q .qprompt { color: var(--slate); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-q .qkind { color: var(--g500); font-size: 10.5px; font-style: italic; font-family: var(--serif); }
+
+  /* ── TOAST ──────────────────────────────────────── */
+  .toast-wrap {
+    position: fixed; bottom: 22px; right: 22px; z-index: 30;
+    display: flex; flex-direction: column; gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--slate); color: var(--oat); padding: 12px 16px;
+    font-size: 13px; font-weight: 500; letter-spacing: 0.02em;
+    box-shadow: 4px 4px 0 var(--clay); pointer-events: auto;
+    max-width: 320px; line-height: 1.5; border-radius: 3px;
+    animation: tin 200ms ease;
+  }
+  .toast.warn { background: var(--oat); color: var(--clay-d); box-shadow: 4px 4px 0 var(--clay-d); }
+  .toast.error { background: var(--warn); color: var(--paper); box-shadow: 4px 4px 0 var(--slate); }
+  .toast .x { float: right; cursor: pointer; padding-left: 12px; }
+  @keyframes tin { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  /* ── COMPLETION CARD ─────────────────────────────── */
+  .done-card {
+    background: var(--oat); border: 2px solid var(--clay-d); padding: 28px 28px 22px;
+    border-radius: 4px; text-align: center;
+  }
+  .done-card h1 {
+    font-family: var(--serif); font-weight: 500; font-size: 28px;
+    margin-bottom: 10px; color: var(--slate);
+  }
+  .done-card p { font-size: 14.5px; line-height: 1.65; color: var(--g700); margin-bottom: 14px; }
+
+  /* ── FOOTER ─────────────────────────────────────── */
+  footer {
+    margin-top: 60px; padding: 22px 4vw; border-top: 1px solid var(--g300);
+    color: var(--g500); font-size: 12px; font-family: var(--mono);
+  }
+  footer a { color: var(--olive); border-bottom-color: var(--olive); }
+
+  @media (max-width: 720px) {
+    .progress-block { width: 100%; }
+    .actions { width: 100%; justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="bar-row">
+    <div class="brand"><span class="v">●</span> [INTERVIEW_TITLE]</div>
+    <div class="progress-block">
+      <span class="pcount"><b id="answered">0</b>/ <span id="total">0</span> 已答</span>
+      <div class="ptrack"><div class="pfill" id="pfill" style="width: 0%"></div></div>
+    </div>
+    <div class="save-state" id="save-state">
+      <span class="dot"></span><span id="save-text">就绪</span>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="btn-export">导出 JSON</button>
+      <button class="btn" id="btn-import">导入 JSON</button>
+      <input type="file" id="file-import" accept=".json" style="display:none">
+      <button class="btn danger" id="btn-reset">重置</button>
+    </div>
+  </div>
+</header>
+
+<div class="banner warn" id="banner-warn"></div>
+<div class="banner error" id="banner-error"></div>
+
+<main>
+  <div id="topic-intro-wrap"></div>
+  <div id="qcard-wrap"></div>
+</main>
+
+<section class="overview">
+  <button class="ov-toggle" id="ov-toggle">
+    <span class="arrow">▶</span>
+    <span>所有问题概览（点击展开 / 折叠 · 可点任意题跳过去）</span>
+  </button>
+  <div class="ov-body" id="ov-body"></div>
+</section>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<footer>
+  <div style="max-width: 880px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+    <span>[INTERVIEW_LEDE]</span>
+    <span>storage: <code style="font-size:11px;color:var(--clay-d)">[STORAGE_KEY]</code></span>
+  </div>
+</footer>
+
+<!-- ============================================================
+  Question Schema (inline for file:// safety)
+  Replace [SCHEMA_JSON] with pretty-printed schema from Phase 2.
+  Shape:
+  {
+    "version": 1,
+    "categories": [{ "id": "..", "name": "..", "color": "#..." }],
+    "topics":     [{ "id": "..", "title": "..", "category": "..", "ch": "..", "intro": ".." }],
+    "questions":  [{ "id": "..", "topic_id": "..", "kind": "..", "prompt": "..", "hint": ".." }]
+  }
+============================================================ -->
+<script id="schema" type="application/json">
+[SCHEMA_JSON]
+</script>
+
+<script>
+(function() {
+  const STORAGE_KEY = '[STORAGE_KEY]';
+  const SCHEMA = JSON.parse(document.getElementById('schema').textContent);
+  const TOPICS_BY_ID = Object.fromEntries((SCHEMA.topics || []).map(t => [t.id, t]));
+  const CATS_BY_ID = Object.fromEntries((SCHEMA.categories || []).map(c => [c.id, c]));
+  const TOTAL = (SCHEMA.questions || []).length;
+
+  let state = loadState();
+
+  // ── Storage ────────────────────────────────────────
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      if (parsed.schema_version !== 1) {
+        try { localStorage.setItem(STORAGE_KEY + '-legacy-' + Date.now(), raw); } catch(_) {}
+        return defaultState();
+      }
+      return Object.assign(defaultState(), parsed);
+    } catch (e) {
+      console.error('loadState failed:', e);
+      showBanner('error', '⚠️ 读取本地存档失败：' + e.message + '。请尝试导入之前的备份 JSON。');
+      return defaultState();
+    }
+  }
+  function defaultState() {
+    return {
+      answers: {},
+      skipped: {},
+      current_index: 0,
+      last_saved: null,
+      schema_version: 1,
+      created: new Date().toISOString()
+    };
+  }
+  let saveTimer = null;
+  function saveStateNow() {
+    setSaveState('saving');
+    try {
+      state.last_saved = new Date().toISOString();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setSaveState('saved', state.last_saved);
+      hideBanner('error');
+    } catch (e) {
+      console.error('saveState failed:', e);
+      setSaveState('error', e.message);
+      showBanner('error', '⚠️ 自动保存失败：' + e.message + '。请立即点击 "导出 JSON" 把数据下载到本地，避免丢失！');
+    }
+  }
+  function saveStateDebounced() {
+    setSaveState('saving');
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveStateNow, 200);
+  }
+  // 5 save trigger redundancy
+  window.addEventListener('beforeunload', saveStateNow);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveStateNow();
+  });
+
+  // ── Save state UI ──────────────────────────────────
+  function setSaveState(kind, info) {
+    const el = document.getElementById('save-state');
+    const text = document.getElementById('save-text');
+    el.classList.remove('saving', 'error');
+    if (kind === 'saving') {
+      el.classList.add('saving');
+      text.textContent = '保存中…';
+    } else if (kind === 'saved') {
+      const t = info ? new Date(info) : new Date();
+      const hh = String(t.getHours()).padStart(2,'0');
+      const mm = String(t.getMinutes()).padStart(2,'0');
+      const ss = String(t.getSeconds()).padStart(2,'0');
+      text.textContent = '已保存 ' + hh + ':' + mm + ':' + ss;
+    } else if (kind === 'error') {
+      el.classList.add('error');
+      text.textContent = '保存失败！';
+    } else {
+      text.textContent = '就绪';
+    }
+  }
+
+  function showBanner(kind, msg) {
+    const el = document.getElementById('banner-' + kind);
+    if (el) { el.textContent = msg; el.classList.add('show'); }
+  }
+  function hideBanner(kind) {
+    const el = document.getElementById('banner-' + kind);
+    if (el) el.classList.remove('show');
+  }
+
+  // ── Toasts ─────────────────────────────────────────
+  function toast(msg, kind, duration) {
+    const wrap = document.getElementById('toast-wrap');
+    const el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    el.innerHTML = msg + '<span class="x">×</span>';
+    el.querySelector('.x').onclick = () => el.remove();
+    wrap.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 200ms'; }, (duration || 5000) - 200);
+    setTimeout(() => el.remove(), duration || 5000);
+  }
+
+  // ── Render ─────────────────────────────────────────
+  function render() {
+    renderHeader();
+    renderQuestion();
+    renderOverview();
+  }
+  function renderHeader() {
+    const answered = Object.keys(state.answers).length;
+    document.getElementById('answered').textContent = answered;
+    document.getElementById('total').textContent = TOTAL;
+    document.getElementById('pfill').style.width = (TOTAL > 0 ? answered / TOTAL * 100 : 0) + '%';
+  }
+  function renderQuestion() {
+    const introWrap = document.getElementById('topic-intro-wrap');
+    const cardWrap = document.getElementById('qcard-wrap');
+    introWrap.innerHTML = '';
+    cardWrap.innerHTML = '';
+
+    if (state.current_index >= TOTAL) {
+      cardWrap.innerHTML = `
+        <div class="done-card">
+          <h1>🎉 全部 ${TOTAL} 题已浏览完</h1>
+          <p>你回答了 <b>${Object.keys(state.answers).length}</b> 题，跳过 <b>${Object.keys(state.skipped).length}</b> 题。<br>
+          强烈建议现在点击右上角"导出 JSON"下载备份！</p>
+          <p>有未答的题想补回，可以在下面"所有问题概览"里点跳过去。</p>
+        </div>
+      `;
+      return;
+    }
+
+    const q = SCHEMA.questions[state.current_index];
+    const topic = TOPICS_BY_ID[q.topic_id];
+    if (!topic) return;
+
+    const isFirstOfTopic = state.current_index === 0 ||
+      SCHEMA.questions[state.current_index - 1].topic_id !== q.topic_id;
+    const topicQs = SCHEMA.questions.filter(qq => qq.topic_id === topic.id);
+    const indexInTopic = topicQs.findIndex(qq => qq.id === q.id) + 1;
+
+    if (isFirstOfTopic) {
+      const catCls = topic.category ? topic.category : '';
+      introWrap.innerHTML = `
+        <div class="topic-intro ${catCls}">
+          ${topic.ch ? `<div class="ch">${escapeHtml(topic.ch)}</div>` : ''}
+          <h2>${escapeHtml(topic.title)}</h2>
+          <div class="topic-progress">第 ${indexInTopic} 题 / 共 ${topicQs.length} 题</div>
+          ${topic.intro ? `<p>${escapeHtml(topic.intro)}</p>` : ''}
+        </div>
+      `;
+    }
+
+    const existing = state.answers[q.id];
+    const wasSkipped = !!state.skipped[q.id];
+    cardWrap.innerHTML = `
+      <div class="qcard">
+        <div class="meta-line">
+          <span class="kind">${escapeHtml(q.kind || '')}</span>
+          <span class="topic-name">${escapeHtml(topic.title)}</span>
+          <span class="pos">第 <b>${state.current_index + 1}</b> / ${TOTAL} 题 · ${escapeHtml(topic.title)} 内第 ${indexInTopic} / ${topicQs.length}</span>
+        </div>
+        <h1>${escapeHtml(q.prompt)}</h1>
+        ${q.hint ? `<div class="hint">${escapeHtml(q.hint)}</div>` : ''}
+        <textarea id="answer" placeholder="${wasSkipped ? '此题之前被跳过，可以现在补回；或继续下一题。' : '在这里输入你的回答…  输入即自动保存'}">${existing ? escapeHtml(existing.text) : ''}</textarea>
+        <div class="nav-row">
+          <button class="nav" id="btn-prev" ${state.current_index === 0 ? 'disabled' : ''}>← 上一题</button>
+          <button class="nav skip" id="btn-skip">跳过 →</button>
+          <span class="grow"></span>
+          <button class="nav primary" id="btn-next">保存并下一题 →</button>
+        </div>
+      </div>
+    `;
+
+    const ta = document.getElementById('answer');
+    ta.focus();
+    ta.addEventListener('input', () => {
+      const text = ta.value;
+      if (text.trim() === '') {
+        delete state.answers[q.id];
+      } else {
+        state.answers[q.id] = { text: text, saved_at: new Date().toISOString() };
+        delete state.skipped[q.id];
+      }
+      saveStateDebounced();
+      renderHeader();
+      renderOverview();
+    });
+    ta.addEventListener('blur', saveStateNow);
+
+    document.getElementById('btn-prev').onclick = () => navigate(-1);
+    document.getElementById('btn-skip').onclick = () => {
+      if (!state.answers[q.id]) state.skipped[q.id] = true;
+      saveStateNow();
+      navigate(+1);
+    };
+    document.getElementById('btn-next').onclick = () => {
+      saveStateNow();
+      navigate(+1);
+    };
+  }
+
+  function navigate(delta) {
+    saveStateNow();
+    const newIdx = Math.max(0, Math.min(TOTAL, state.current_index + delta));
+    state.current_index = newIdx;
+    saveStateNow();
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const answered = Object.keys(state.answers).length;
+    if (delta > 0 && answered > 0 && answered % 5 === 0 && answered !== state._lastReminderAt) {
+      state._lastReminderAt = answered;
+      toast('已答 ' + answered + ' 题。建议点击"导出 JSON"下载一次备份。', 'warn', 7000);
+    }
+  }
+
+  function jumpTo(index) {
+    saveStateNow();
+    state.current_index = index;
+    saveStateNow();
+    render();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderOverview() {
+    const ov = document.getElementById('ov-body');
+    let html = '';
+    const cats = SCHEMA.categories && SCHEMA.categories.length
+      ? SCHEMA.categories
+      : [{ id: '_default', name: '所有主题', color: '#D97757' }];
+
+    cats.forEach(cat => {
+      const topics = SCHEMA.topics.filter(t =>
+        cat.id === '_default' ? true : t.category === cat.id
+      );
+      if (!topics.length) return;
+      const allQsInCat = SCHEMA.questions.filter(q => topics.some(t => t.id === q.topic_id));
+      const answeredInCat = allQsInCat.filter(q => state.answers[q.id]).length;
+      const pillStyle = `background: ${cat.color || '#D97757'};`;
+      html += `<div class="ov-cat"><div class="ov-cat-head"><span class="pill" style="${pillStyle}">${escapeHtml(cat.name)}</span><span class="name">${escapeHtml(cat.name)}</span><span class="count">${answeredInCat}/${allQsInCat.length} 已答</span></div>`;
+      topics.forEach(t => {
+        const qs = SCHEMA.questions.filter(q => q.topic_id === t.id);
+        html += `<div class="ov-topic"><div class="ov-topic-name">${escapeHtml(t.title)}</div><div class="ov-q-list">`;
+        qs.forEach(q => {
+          const globalIdx = SCHEMA.questions.findIndex(qq => qq.id === q.id);
+          const cls = state.answers[q.id] ? 'answered' : (state.skipped[q.id] ? 'skipped' : '');
+          const current = globalIdx === state.current_index ? 'current' : '';
+          html += `<div class="ov-q ${cls} ${current}" data-idx="${globalIdx}"><span class="badge"></span><span class="qprompt">${escapeHtml(q.prompt)}</span><span class="qkind">${escapeHtml(q.kind || '')}</span></div>`;
+        });
+        html += '</div></div>';
+      });
+      html += '</div>';
+    });
+    ov.innerHTML = html;
+    ov.querySelectorAll('.ov-q').forEach(el => {
+      el.onclick = () => jumpTo(parseInt(el.dataset.idx));
+    });
+  }
+
+  // ── Export / Import / Reset ────────────────────────
+  function exportJson() {
+    const payload = {
+      app: 'interviewer',
+      storage_key: STORAGE_KEY,
+      schema_version: 1,
+      exported_at: new Date().toISOString(),
+      state: state
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.href = url;
+    a.download = STORAGE_KEY + '-backup-' + ts + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('已导出备份 JSON。请妥善保存。', null, 4000);
+  }
+
+  function importJson() { document.getElementById('file-import').click(); }
+
+  document.getElementById('file-import').addEventListener('change', (ev) => {
+    const file = ev.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed.app !== 'interviewer' && parsed.schema_version !== 1) {
+          if (!confirm('这份文件似乎不是本采访系统导出的备份。仍要继续导入吗？')) return;
+        }
+        const incoming = parsed.state || parsed;
+        if (!incoming || typeof incoming !== 'object') {
+          alert('文件格式无法解析。');
+          return;
+        }
+        const merged = Object.assign(defaultState(), {
+          answers: Object.assign({}, state.answers, incoming.answers || {}),
+          skipped: Object.assign({}, state.skipped, incoming.skipped || {}),
+          current_index: typeof incoming.current_index === 'number' ? incoming.current_index : state.current_index,
+          schema_version: 1
+        });
+        state = merged;
+        saveStateNow();
+        render();
+        toast('导入成功，数据已合并。', null, 4000);
+      } catch (err) {
+        alert('解析失败：' + err.message);
+      } finally {
+        ev.target.value = '';
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  function resetAll() {
+    if (!confirm('确定清空所有回答？建议先点"导出 JSON"备份。')) return;
+    if (!confirm('再次确认 — 这会删除你所有已输入的内容，不可恢复。要继续吗？')) return;
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) localStorage.setItem(STORAGE_KEY + '-archive-' + Date.now(), raw);
+    } catch(_) {}
+    state = defaultState();
+    saveStateNow();
+    render();
+    toast('已重置。旧数据已归档为 -archive-* 备份键。', 'warn', 6000);
+  }
+
+  // ── Wire actions ───────────────────────────────────
+  document.getElementById('btn-export').onclick = exportJson;
+  document.getElementById('btn-import').onclick = importJson;
+  document.getElementById('btn-reset').onclick = resetAll;
+  document.getElementById('ov-toggle').onclick = function() {
+    this.classList.toggle('open');
+    document.getElementById('ov-body').classList.toggle('open');
+  };
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        navigate(+1);
+      }
+      return;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'j') navigate(+1);
+    if (e.key === 'ArrowLeft' || e.key === 'k') navigate(-1);
+  });
+
+  // ── Init ───────────────────────────────────────────
+  if (state.last_saved) setSaveState('saved', state.last_saved);
+  else setSaveState('idle');
+  render();
+
+  function escapeHtml(s) {
+    return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+})();
+</script>
+
+</body>
+</html>

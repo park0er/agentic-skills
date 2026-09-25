@@ -1,0 +1,8 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.zip
+.venv/
+node_modules/
+uv.lock
+.claude/

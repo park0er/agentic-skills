@@ -1,0 +1,10 @@
+{
+  "vpn_interface": "__VPN_INTERFACE__",
+  "bridge_port": 8765,
+  "bridge_api_key": "__BRIDGE_API_KEY__",
+  "bridge_log": "__HOME__/.ccpocket-helper/bridge.log",
+  "bridge_pid_file": "__HOME__/.ccpocket-helper/bridge.pid",
+  "state_file": "__HOME__/.ccpocket-helper/state.json",
+  "bridge_package": "@ccpocket/bridge@latest",
+  "version": 1
+}

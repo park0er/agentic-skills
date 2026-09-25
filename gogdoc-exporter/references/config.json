@@ -1,0 +1,14 @@
+{
+  "vault_root": "/Users/park0er/Library/Mobile Documents/iCloud~md~obsidian/Documents/Iphone1",
+  "target_subdir": "Rollie/Rollie的报告厅",
+  "filename_format": "YYYY-MM-DD_{slug}",
+  "tags": [
+    "📥/Rollie",
+    "#report/google-docs"
+  ],
+  "default_formats": [
+    "md",
+    "pdf"
+  ],
+  "default_send_pdf_in_chat": true
+}

@@ -1,0 +1,108 @@
+{
+  "icloudRoot": "~/Library/Mobile Documents/com~apple~CloudDocs/ClaudeSync",
+  "backupRoot": "~/ClaudeSyncBackups/doctor",
+  "statePath": "~/Library/Mobile Documents/com~apple~CloudDocs/ClaudeSync/.doctor/state/{hostname}-architecture-a.json",
+  "entries": [
+    {
+      "id": "claude-home-json",
+      "type": "file",
+      "local": "~/.claude.json",
+      "cloud": "home/.claude.json",
+      "atomicReplaceRisk": true,
+      "containsSecrets": false
+    },
+    {
+      "id": "dotclaude-settings",
+      "type": "file",
+      "local": "~/.claude/settings.json",
+      "cloud": "dotclaude/settings.json",
+      "atomicReplaceRisk": true,
+      "containsSecrets": false
+    },
+    {
+      "id": "dotclaude-memory",
+      "type": "file",
+      "local": "~/.claude/CLAUDE.md",
+      "cloud": "dotclaude/CLAUDE.md",
+      "atomicReplaceRisk": true,
+      "containsSecrets": false
+    },
+    {
+      "id": "dotclaude-history",
+      "type": "file",
+      "local": "~/.claude/history.jsonl",
+      "cloud": "dotclaude/history.jsonl",
+      "atomicReplaceRisk": false,
+      "containsSecrets": false
+    },
+    {
+      "id": "desktop-config",
+      "type": "file",
+      "local": "~/Library/Application Support/Claude-3p/claude_desktop_config.json",
+      "cloud": "claude3p/claude_desktop_config.json",
+      "atomicReplaceRisk": true,
+      "containsSecrets": true
+    },
+    {
+      "id": "dotclaude-projects",
+      "type": "directory",
+      "local": "~/.claude/projects",
+      "cloud": "dotclaude/projects"
+    },
+    {
+      "id": "dotclaude-todos",
+      "type": "directory",
+      "local": "~/.claude/todos",
+      "cloud": "dotclaude/todos"
+    },
+    {
+      "id": "dotclaude-file-history",
+      "type": "directory",
+      "local": "~/.claude/file-history",
+      "cloud": "dotclaude/file-history"
+    },
+    {
+      "id": "dotclaude-plans",
+      "type": "directory",
+      "local": "~/.claude/plans",
+      "cloud": "dotclaude/plans"
+    },
+    {
+      "id": "dotclaude-skills",
+      "type": "directory",
+      "local": "~/.claude/skills",
+      "cloud": "dotclaude/skills"
+    },
+    {
+      "id": "dotclaude-plugins",
+      "type": "directory",
+      "local": "~/.claude/plugins",
+      "cloud": "dotclaude/plugins"
+    },
+    {
+      "id": "dotclaude-hooks",
+      "type": "directory",
+      "local": "~/.claude/hooks",
+      "cloud": "dotclaude/hooks"
+    },
+    {
+      "id": "dotclaude-tasks",
+      "type": "directory",
+      "local": "~/.claude/tasks",
+      "cloud": "dotclaude/tasks"
+    },
+    {
+      "id": "desktop-code-sessions",
+      "type": "directory",
+      "local": "~/Library/Application Support/Claude-3p/claude-code-sessions",
+      "cloud": "claude3p/claude-code-sessions"
+    },
+    {
+      "id": "desktop-agent-sessions",
+      "type": "directory",
+      "local": "~/Library/Application Support/Claude-3p/local-agent-mode-sessions",
+      "cloud": "claude3p/local-agent-mode-sessions"
+    }
+  ]
+}
+

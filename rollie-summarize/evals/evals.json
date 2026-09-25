@@ -1,0 +1,41 @@
+{
+  "skill_name": "rollie-summarize",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "rollie总结下面这篇文章：\n\n《别一复杂就上多 Agent》\n很多团队看到任务复杂，就马上设计 planner、implementer、tester 三个 agent。这个直觉通常是错的。真正的问题不是“要不要多 agent”，而是“上下文边界在哪里”。如果两个子任务需要共享大量背景，把它们拆开只会制造信息损耗。比如写一个功能的人最好同时写测试，因为他已经知道实现细节。只有当任务可以被清晰隔离，比如独立调研、并行查资料、独立安全审计时，子 agent 才有价值。\n\nAgent team 和 sub-agent 也不是一回事。Sub-agent 是短生命周期的隔离工作单元，接任务、返回结果、结束。Agent team 是长期存在的协作组织，有 team lead、共享任务列表和成员间通信，适合需求会互相影响、发现会改变后续工作的场景。\n\n最常见的失败有三个：第一，任务描述太含糊，多个 agent 重复干活；第二，验证 agent 没有真的跑测试却宣布完成；第三，token 成本在多轮通信中指数级累积。结论：先把单 agent 推到极限，找到真实瓶颈，再补多 agent。",
+      "expected_output": "A Rollie-style four-section Chinese summary with critical analysis, Parker-specific value, and concrete action items.",
+      "files": [],
+      "expectations": [
+        "输出包含四个 Rollie 章节：核心内容总结、逻辑硬伤分析、对盛总的价值提炼、具体行动项。",
+        "逻辑硬伤至少指出 2 个风险，例如上下文边界难判断、过度反多 agent、成本/验证前提等。",
+        "价值提炼必须个性化到盛总/Parker/Rollie/AI Agent 工程化/CLI 自动化之一。",
+        "行动项至少 3 条且具体可执行。"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "帮我深度总结这段资料，按 rollie 总结风格来：\n\n我想把自己的 Agent Skills 通过 npx 分发。当前现成的 `skill@1.0.2` CLI 用法是 `npx skill skills/<name>`，默认从 `https://github.com/vercel-labs/agent-skills/tree/main` 下载，并安装到当前目录的 `.codebuddy/skills`。它支持 `SKILL_BASE_URL` 覆盖远端 base URL，所以我可以建一个 `github.com/park0er/agent-skills`，里面放 `skills/rollie-summarize`，然后用 `SKILL_BASE_URL=... npx skill skills/rollie-summarize` 安装。\n\n但这个方案有局限：它不是 `npx skill add <name>`，也不会直接安装到 `~/.claude/skills` 或 `~/.codex/skills`。如果我要给 Claude、Codex、Agents 三个目录统一安装，可能需要自己写一个 npm CLI，比如 `npx @park0er/skills add rollie-summarize --target all`，内部把 skill 复制到 `~/.claude/skills`、`~/.codex/skills`、`~/.agents/skills`。\n\n我还希望每个 skill 带 `evals/evals.json` 和 `scripts/run_static_eval.py`，并用 Claude Skill Creator 的 `package_skill.py` 打包成 `.skill`。",
+      "expected_output": "A Rollie-style summary that distinguishes the lightweight SKILL_BASE_URL route from a custom npm CLI route and critiques distribution risks.",
+      "files": [],
+      "expectations": [
+        "输出必须区分轻量路线 SKILL_BASE_URL + npx skill 和进阶路线自建 npm CLI。",
+        "必须指出现成 CLI 默认安装到 .codebuddy/skills 这个限制。",
+        "必须给出对盛总有用的下一步行动，而不是泛泛说发布 npm。",
+        "必须有逻辑硬伤/风险分析，例如私有仓库权限、目录目标差异、版本管理、CI 测评。"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "rollie总结这份“飞书文档同步规范”的摘录，并特别关注执行风险：\n\n团队过去用 `mcp_feishu_fetch-doc` 和 `mcp_feishu_create-doc` 读写飞书，但这些 MCP 调用已经过时。现在统一使用现有 feishu skill，对飞书链接用 `feishu fetch <url>` 读取。写入飞书文档时使用 `feishu docx create/update`，并遵守扩展 Markdown 规范。\n\n如果本地 Markdown 和飞书文档互相同步，必须在本地文件头部保留溯源注释：`<!-- feishu: https://www.feishu.cn/docx/xxx 或 https://mi.feishu.cn/wiki/xxx -->`。从飞书拉取到本地也要保留这个注释。这样可以避免本地文件和飞书文档断链。\n\n最危险的情况是：模型看到飞书 URL 后走普通 WebFetch，拿不到权限内容；或者继续使用旧 MCP；或者覆盖本地文件时把 feishu 溯源注释删掉。",
+      "expected_output": "A Rollie-style summary that reinforces current feishu skill routing, provenance comments, and migration risks.",
+      "files": [],
+      "expectations": [
+        "必须明确飞书 URL 使用现有 feishu skill / feishu fetch，而不是旧 MCP 或普通 WebFetch。",
+        "必须提到本地文件头部保留 feishu 溯源注释。",
+        "必须分析至少 2 个执行风险，例如旧工具残留、权限读取失败、覆盖丢溯源。",
+        "行动项必须包含检查/迁移旧 MCP 文案或为同步流程加校验。"
+      ]
+    }
+  ]
+}

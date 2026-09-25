@@ -1,0 +1,316 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: deck
+  Arrow-key navigable single-file deck. ~20 lines of inline JS.
+  Each <section.slide> is a full-viewport slide.
+  Use ← / → / Space / Home / End / Esc (escape opens index view).
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[DECK_TITLE]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  CN typography renders consistently regardless of installed fonts.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  /* PALETTE — default Swiss for deck (boardroom register).
+     Swap to warm-paper for editorial / talk-style decks. */
+  /* ============================================================
+     TYPE — CJK-safe font stacks. Shared across both palettes.
+     Rationale: any family that may render Chinese must include a CJK
+     fallback (kami's rule). Mono especially — `Menlo, Consolas` alone
+     renders 中文注释 as tofu on Windows. See references/design-tokens.md.
+  ============================================================ */
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --safety-orange: #FF6B00;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+  }
+  /* ── warm-paper alt:
+  :root {
+    --klein: #B85C3E; --lemon-yellow: #E3DACC; --safety-orange: #C2502C;
+    --ink: #141413; --mute: #87867F; --bg: #FAF9F5; --card: #FFFFFF;
+  } ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    color: var(--ink); background: var(--bg);
+    overflow: hidden; -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — kami's rule: TsangerJinKai-class CN fonts
+     read denser than Latin; a hair of letter-spacing opens up paragraphs. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+
+  /* deck container */
+  .deck {
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+  }
+  .deck::-webkit-scrollbar { display: none; }
+
+  /* each slide */
+  .slide {
+    height: 100vh;
+    width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    padding: 6vw 8vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+  }
+
+  /* slide variants */
+  .slide.title    { background: var(--ink); color: white; }
+  .slide.title h1 { color: white; }
+  .slide.title h1 em { color: var(--lemon-yellow); }
+  .slide.accent   { background: var(--lemon-yellow); }
+  .slide.dark     { background: var(--ink); color: white; }
+  .slide.dark h2  { color: white; }
+  .slide.dark h2 em { color: var(--lemon-yellow); }
+
+  /* typography per slide */
+  .slide .eyebrow {
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--mute); margin-bottom: 24px;
+  }
+  .slide.title .eyebrow,
+  .slide.dark  .eyebrow { color: rgba(255,255,255,0.6); }
+  .slide h1 {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 900; line-height: 1; letter-spacing: -0.02em;
+    margin-bottom: 16px; max-width: 18ch;
+  }
+  .slide h1 em { color: var(--klein); font-style: italic; }
+  .slide h2 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
+    margin-bottom: 24px; max-width: 22ch;
+  }
+  .slide h2 em { color: var(--klein); font-style: italic; }
+  .slide p, .slide li { font-size: clamp(18px, 2vw, 24px); line-height: 1.4; max-width: 30ch; }
+  .slide ul { list-style: none; padding: 0; }
+  .slide ul li { padding-left: 28px; position: relative; margin-top: 14px; }
+  .slide ul li::before {
+    content: ""; position: absolute; left: 0; top: 0.55em;
+    width: 16px; height: 2px; background: var(--klein);
+  }
+  .slide.dark ul li::before { background: var(--lemon-yellow); }
+
+  /* slide number / counter */
+  .slide-num {
+    position: absolute; bottom: 24px; right: 24px;
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--mute);
+  }
+  .slide.title .slide-num,
+  .slide.dark  .slide-num { color: rgba(255,255,255,0.5); }
+
+  /* index view (Esc) */
+  .deck.indexview { scroll-snap-type: none; height: auto; }
+  .deck.indexview .slide {
+    height: auto; aspect-ratio: 16/9;
+    min-height: 0; padding: 24px;
+    border: 2px solid var(--ink);
+    margin: 12px;
+    width: calc((100% - 48px) / 3 - 12px);
+    display: inline-flex; vertical-align: top;
+  }
+  .deck.indexview .slide h1,
+  .deck.indexview .slide h2 { font-size: 24px; }
+  .deck.indexview .slide p,
+  .deck.indexview .slide li { font-size: 11px; }
+
+  /* progress bar */
+  .progress {
+    position: fixed; top: 0; left: 0;
+    height: 3px; background: var(--klein);
+    z-index: 10; transition: width 200ms ease;
+  }
+
+  /* keymap hint */
+  .hint {
+    position: fixed; bottom: 12px; left: 16px;
+    font-family: var(--font-mono);
+    font-size: 10px; color: var(--mute); letter-spacing: 0.05em;
+    z-index: 5; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="hint">← →&nbsp;翻页 · ESC&nbsp;索引 · F&nbsp;全屏</div>
+
+<main class="deck" id="deck">
+
+  <section class="slide title">
+    <div class="eyebrow">[CONTEXT · DATE]</div>
+    <h1>[Deck title <em>with emphasis</em>]</h1>
+    <p style="margin-top:24px; color:rgba(255,255,255,0.7); max-width:40ch;">
+      [Subtitle / 一句话定位]
+    </p>
+    <div class="slide-num">01</div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow">01 · 背景</div>
+    <h2>[问题陈述] <em>是什么</em></h2>
+    <p>[一句话总结。]</p>
+    <div class="slide-num">02</div>
+  </section>
+
+  <section class="slide accent">
+    <div class="eyebrow">02 · 关键数据</div>
+    <h2 style="font-size:clamp(72px, 12vw, 160px); line-height: 0.9;">[N×]</h2>
+    <p style="font-size:24px; margin-top:24px;">[这个数字告诉我们什么。]</p>
+    <div class="slide-num">03</div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow">03 · 三个发现</div>
+    <h2>[三个发现的 <em>共同模式</em>]</h2>
+    <ul>
+      <li>[发现 1]</li>
+      <li>[发现 2]</li>
+      <li>[发现 3]</li>
+    </ul>
+    <div class="slide-num">04</div>
+  </section>
+
+  <section class="slide dark">
+    <div class="eyebrow">04 · 提议</div>
+    <h2>所以我们应该 <em>[动词 + 对象]</em></h2>
+    <p>[一句话理由。]</p>
+    <div class="slide-num">05</div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow">05 · 路径</div>
+    <h2>分三步走</h2>
+    <ul>
+      <li><b>Q3</b> · [第一步]</li>
+      <li><b>Q4</b> · [第二步]</li>
+      <li><b>Q1 next year</b> · [第三步]</li>
+    </ul>
+    <div class="slide-num">06</div>
+  </section>
+
+  <section class="slide title">
+    <div class="eyebrow">END · QUESTIONS</div>
+    <h1>讨论 / <em>提问</em></h1>
+    <p style="color:rgba(255,255,255,0.7); margin-top:24px;">
+      [Contact · email · slack handle]
+    </p>
+    <div class="slide-num">07 / 07</div>
+  </section>
+
+</main>
+
+<script>
+  const deck = document.getElementById('deck');
+  const slides = [...document.querySelectorAll('.slide')];
+  const progress = document.getElementById('progress');
+  let idx = 0;
+
+  function go(n) {
+    idx = Math.max(0, Math.min(slides.length - 1, n));
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    progress.style.width = ((idx + 1) / slides.length * 100) + '%';
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(idx + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); go(0); }
+    else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+    else if (e.key === 'Escape') { deck.classList.toggle('indexview'); }
+    else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  deck.addEventListener('click', e => {
+    if (deck.classList.contains('indexview')) {
+      const s = e.target.closest('.slide');
+      if (s) {
+        deck.classList.remove('indexview');
+        idx = slides.indexOf(s);
+        setTimeout(() => go(idx), 50);
+      }
+    } else {
+      go(idx + 1);
+    }
+  });
+
+  // sync idx on manual scroll (trackpad / scroll-wheel) — without this, arrow keys
+  // restart from the wrong slide after the user scrolls by hand.
+  let scrollT;
+  deck.addEventListener('scroll', () => {
+    clearTimeout(scrollT);
+    scrollT = setTimeout(() => {
+      const top = deck.scrollTop;
+      const next = slides.findIndex(s => s.offsetTop + s.offsetHeight / 2 > top);
+      if (next >= 0 && next !== idx) {
+        idx = next;
+        progress.style.width = ((idx + 1) / slides.length * 100) + '%';
+      }
+    }, 80);
+  });
+
+  // initial progress
+  progress.style.width = (1 / slides.length * 100) + '%';
+</script>
+
+</body>
+</html>

@@ -1,0 +1,715 @@
+<!doctype html>
+<!-- ============================================================
+  Interviewer Skill · Architecture (README.html)
+  Single-page interactive architecture diagram for the skill.
+  Open in any browser, click any node to read its role.
+  Built with: tariq-html · diagram branch · warm-paper palette
+  Origin project: MayGroupAIShare V6 故事采访 (validated, then generalized)
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interviewer Skill · Architecture</title>
+<style>
+  /* ============================================================
+     TYPE — CJK-safe stacks (kami's rule)
+  ============================================================ */
+  :root {
+    --sans:
+      system-ui, -apple-system, "Segoe UI", "Helvetica Neue",
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      Roboto, Helvetica, Arial, sans-serif;
+    --serif:
+      Charter, "Iowan Old Style", ui-serif, Georgia, "Times New Roman", Times,
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  /* ============================================================
+     Warm-paper palette (Tariq)
+     Mapped onto the same token names used by the diagram template,
+     so every diagram class still works — only colors swap.
+  ============================================================ */
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;   /* primary accent */
+    --clay-d: #B85C3E;   /* clay hover / strong */
+    --oat:    #E3DACC;   /* secondary fill */
+    --olive:  #788C5D;   /* tertiary accent */
+    --warn:   #C2502C;   /* warning / error */
+
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #D1CFC5;
+    --g500:   #87867F;
+    --g700:   #3D3D3A;
+
+    /* shorthand for diagram CSS */
+    --bg:     var(--ivory);
+    --card:   var(--paper);
+    --ink:    var(--slate);
+    --mute:   var(--g500);
+    --rule:   var(--g300);
+    --accent: var(--clay);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    font-size: 16.5px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+
+  a { color: var(--clay-d); text-decoration: none; border-bottom: 1px solid var(--clay-d); }
+  a:hover { color: var(--clay); border-bottom-color: var(--clay); }
+  code {
+    font-family: var(--mono); font-size: 0.84em;
+    background: var(--g100); padding: 1px 5px; border-radius: 3px; color: var(--g700);
+  }
+
+  /* ── HERO ─────────────────────────────────── */
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 56px 24px 24px; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--mute); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .eyebrow::before {
+    content: ""; width: 24px; height: 1.5px; background: var(--clay);
+  }
+
+  h1.title {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(38px, 5.4vw, 62px); line-height: 1.06;
+    letter-spacing: -0.018em; max-width: 22ch; margin-bottom: 14px;
+  }
+  h1.title em { font-style: italic; color: var(--clay); font-weight: 500; }
+
+  .lede {
+    font-size: 16.5px; color: var(--g700); max-width: 720px; line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  /* TL;DR card */
+  .tldr {
+    background: var(--oat); border: 1.5px solid var(--clay-d);
+    padding: 20px 24px; margin-bottom: 32px; max-width: 920px;
+    display: grid; grid-template-columns: 110px 1fr; gap: 22px; align-items: start;
+  }
+  .tldr .label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    font-weight: 700; text-transform: uppercase; color: var(--clay-d);
+  }
+  .tldr .body { font-size: 15.5px; line-height: 1.6; color: var(--g700); font-family: var(--serif); }
+  .tldr .body em { color: var(--clay-d); font-style: italic; font-weight: 500; }
+  .tldr .body strong { background: var(--clay-d); color: var(--ivory); padding: 1px 6px; font-weight: 600; }
+
+  /* ── LAYOUT: stage (left) + sticky panel (right) ─── */
+  .layout {
+    display: grid; grid-template-columns: 1fr 380px; gap: 28px;
+    align-items: start;
+  }
+  @media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+  .stage {
+    background: var(--paper); border: 1.5px solid var(--g300);
+    padding: 28px; overflow-x: auto; border-radius: 4px;
+  }
+  .stage svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* ── SVG node styles (warm-paper) ─────────── */
+  .node { cursor: pointer; transition: transform 120ms ease; }
+  .node:hover { transform: translateY(-1px); }
+  .node:focus { outline: none; }
+  .node.active rect, .node.active polygon, .node.active path {
+    stroke: var(--clay); stroke-width: 3;
+  }
+  .node.active rect.bg, .node.active polygon.bg, .node.active path.bg {
+    filter: drop-shadow(0 0 0 var(--clay));
+  }
+  .node text { pointer-events: none; user-select: none; font-family: var(--sans); }
+
+  .node-process  { fill: var(--paper); stroke: var(--slate); stroke-width: 1.5; }
+  .node-data     { fill: var(--paper); stroke: var(--clay); stroke-width: 2; }
+  .node-decision { fill: var(--oat); stroke: var(--slate); stroke-width: 1.5; }
+  .node-success  { fill: var(--olive); stroke: var(--slate); stroke-width: 1.5; }
+  .node-error    { fill: var(--paper); stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 5 3; }
+  .node-transient{ fill: var(--g100); stroke: var(--mute); stroke-width: 1.5; stroke-dasharray: 4 3; }
+  .node-zone     { fill: none; stroke: var(--g300); stroke-width: 1.2; stroke-dasharray: 2 4; }
+  .node-zone-warn{ fill: #fbeae8; stroke: var(--warn); stroke-width: 1.5; stroke-dasharray: 4 4; }
+
+  .edge          { stroke: var(--slate); stroke-width: 1.5; fill: none; }
+  .edge-dim      { stroke: var(--mute); stroke-width: 1.2; fill: none; }
+  .edge-export   { stroke: var(--olive); stroke-width: 2; fill: none; stroke-dasharray: 6 4; }
+
+  text.label     { font-weight: 600; font-size: 13px; fill: var(--slate); text-anchor: middle; }
+  text.label.invert { fill: var(--ivory); }
+  text.label.olive  { fill: var(--ivory); font-weight: 700; }
+  text.label.tiny   { font-size: 11px; }
+  text.sub       { font-family: var(--mono); font-size: 10.5px; fill: var(--mute); text-anchor: middle; }
+  text.sub.invert { fill: var(--ivory); opacity: 0.85; }
+  text.zone-label{ font-family: var(--mono); font-size: 11px; fill: var(--g500); letter-spacing: 0.12em; text-transform: uppercase; }
+  text.zone-label.warn { fill: var(--warn); }
+  text.edge-label{ font-family: var(--mono); font-size: 11px; fill: var(--mute); text-anchor: middle; }
+  text.edge-label.olive { fill: var(--olive); }
+
+  /* ── sticky detail panel ──────────────────── */
+  aside.panel {
+    position: sticky; top: 24px;
+    background: var(--paper); border: 1.5px solid var(--g300);
+    padding: 22px 24px; min-height: 320px; border-radius: 4px;
+  }
+  aside.panel .hint {
+    font-family: var(--mono); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 0.16em; color: var(--g500);
+    margin-bottom: 10px;
+  }
+  aside.panel h3 {
+    font-family: var(--serif); font-weight: 500; font-size: 22px;
+    line-height: 1.25; margin: 0 0 6px; color: var(--slate);
+  }
+  aside.panel h3 em { color: var(--clay); font-style: italic; }
+  aside.panel .meta {
+    font-family: var(--mono); font-size: 11px; color: var(--clay-d);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px;
+  }
+  aside.panel p {
+    font-size: 14px; color: var(--g700); margin-bottom: 10px; line-height: 1.65;
+  }
+  aside.panel p code {
+    background: var(--oat); padding: 1px 5px; border-radius: 2px;
+    font-size: 12.5px; color: var(--clay-d);
+  }
+  aside.panel ul {
+    padding-left: 18px; margin: 8px 0;
+    font-size: 13.5px; color: var(--g700); line-height: 1.6;
+  }
+  aside.panel ul li { margin-bottom: 4px; }
+  aside.panel pre {
+    background: var(--slate); color: var(--oat);
+    font: 12px/1.55 var(--mono);
+    padding: 12px 14px; border-radius: 3px;
+    overflow-x: auto; white-space: pre; margin-top: 8px;
+  }
+  aside.panel pre:empty { display: none; }
+  aside.panel .badge {
+    display: inline-block; padding: 2px 8px; font-size: 10.5px;
+    font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--olive); color: var(--ivory); margin-bottom: 10px; font-weight: 600;
+  }
+  aside.panel .badge.clay { background: var(--clay); }
+  aside.panel .badge.oat { background: var(--oat); color: var(--clay-d); }
+  aside.panel .badge.warn { background: var(--warn); color: var(--ivory); }
+  aside.panel .badge.muted { background: var(--g300); color: var(--g700); }
+
+  /* ── legend ───────────────────────────────── */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    background: var(--paper); border: 1px solid var(--g300);
+    padding: 16px 22px; font-size: 12.5px; color: var(--g700);
+    margin-top: 24px; border-radius: 4px;
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .legend .swatch { display: inline-block; width: 22px; height: 14px; border: 1.5px solid var(--slate); }
+  .legend .swatch.process    { background: var(--paper); }
+  .legend .swatch.data       { background: var(--paper); border-color: var(--clay); border-width: 2px; }
+  .legend .swatch.decision   { background: var(--oat); }
+  .legend .swatch.success    { background: var(--olive); border-color: var(--slate); }
+  .legend .swatch.transient  { background: var(--g100); border-color: var(--mute); border-style: dashed; }
+  .legend .swatch.error      { background: var(--paper); border-color: var(--warn); border-style: dashed; }
+
+  .caption {
+    font-family: var(--serif); font-size: 14.5px; color: var(--g700);
+    line-height: 1.6; margin-top: 18px; max-width: 720px; font-style: italic;
+  }
+
+  /* ── footer ──────────────────────────────── */
+  footer {
+    margin-top: 56px; padding: 24px; border-top: 1px solid var(--g300);
+    color: var(--g500); font-size: 12px; font-family: var(--mono);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px;
+  }
+  footer a { color: var(--olive); border-bottom-color: var(--olive); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<section>
+
+  <div class="eyebrow">interviewer skill · architecture · warm-paper</div>
+  <h1 class="title">Interviewer Skill 的<em>架构图</em></h1>
+  <p class="lede">这是 <code style="background:#E3DACC;color:#B85C3E;padding:1px 6px;border-radius:2px;font-family:var(--mono);font-size:0.86em;">interviewer</code> skill 生成的采访 app 的架构。<strong style="color:var(--clay-d)">点击任意节点</strong>，右侧面板会显示该节点的具体角色、属性和失败模式。所有内容存在用户浏览器里 — 没有后端、没有数据库、没有网络请求。</p>
+
+  <div class="tldr">
+    <div class="label">TL;DR</div>
+    <div class="body">
+      生成的每个采访 app 都是<em>纯前端单文件应用</em>。<strong>0 后端</strong> · <strong>0 数据库</strong> · <strong>0 网络请求</strong>。所有答案存在<em>用户浏览器的 localStorage</em>，每次输入 200ms 内自动落盘。备份机制是用户点 "导出 JSON" 下载文件到本地。
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ═════════════════════════════ STAGE ═════════════════════════════ -->
+    <div class="stage">
+      <svg viewBox="0 0 920 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="采访系统架构图">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#141413"/>
+          </marker>
+          <marker id="arr-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#87867F"/>
+          </marker>
+          <marker id="arr-export" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#788C5D"/>
+          </marker>
+        </defs>
+
+        <!-- ═══ ZONE: BROWSER (top large enclosure) ═══ -->
+        <rect class="node-zone" x="20" y="40" width="880" height="380" rx="6"/>
+        <text class="zone-label" x="40" y="32">🖥  浏览器（你的电脑）</text>
+
+        <!-- HTML/JS layer -->
+        <g class="node" data-k="html-js">
+          <rect class="node-process bg" x="50" y="78" width="170" height="64" rx="3"/>
+          <text class="label" x="135" y="106">HTML / JS</text>
+          <text class="sub"   x="135" y="125">&lt;topic-slug&gt;-interview.html</text>
+        </g>
+
+        <!-- JS memory L3 -->
+        <g class="node" data-k="js-memory">
+          <rect class="node-transient bg" x="50" y="178" width="170" height="56" rx="3"/>
+          <text class="label" x="135" y="202">L3 · JS 内存</text>
+          <text class="sub"   x="135" y="220">state 变量 (运行时)</text>
+        </g>
+
+        <!-- localStorage L1 (HERO node) -->
+        <g class="node" data-k="localstorage">
+          <rect class="node-data bg" x="290" y="160" width="280" height="100" rx="3"/>
+          <text class="label" x="430" y="190" style="font-size:15px;">L1 · localStorage</text>
+          <text class="sub"   x="430" y="210">interviewer-&lt;topic-slug&gt;-v1</text>
+          <text class="sub"   x="430" y="228" style="fill:#D97757; font-weight:700;">主存储 · 单一真相之源</text>
+          <text class="sub"   x="430" y="246">5–10 MB · 同 origin · 持久化</text>
+        </g>
+
+        <!-- 5 Save trigger nodes (right cluster) -->
+        <text class="zone-label" x="640" y="100">5 个保存触发点</text>
+
+        <g class="node" data-k="trigger-input">
+          <rect class="node-decision bg" x="640" y="115" width="118" height="40" rx="3"/>
+          <text class="label tiny" x="699" y="139">① input · 200ms</text>
+        </g>
+        <g class="node" data-k="trigger-blur">
+          <rect class="node-decision bg" x="770" y="115" width="118" height="40" rx="3"/>
+          <text class="label tiny" x="829" y="139">② blur · 立即</text>
+        </g>
+        <g class="node" data-k="trigger-nav">
+          <rect class="node-decision bg" x="640" y="170" width="118" height="40" rx="3"/>
+          <text class="label tiny" x="699" y="194">③ 翻题 · 前后两次</text>
+        </g>
+        <g class="node" data-k="trigger-unload">
+          <rect class="node-decision bg" x="770" y="170" width="118" height="40" rx="3"/>
+          <text class="label tiny" x="829" y="194">④ beforeunload</text>
+        </g>
+        <g class="node" data-k="trigger-vis">
+          <rect class="node-decision bg" x="685" y="225" width="158" height="40" rx="3"/>
+          <text class="label tiny" x="764" y="249">⑤ visibilitychange</text>
+        </g>
+
+        <!-- Schema reference (L4) -->
+        <g class="node" data-k="schema">
+          <rect class="node-transient bg" x="50" y="300" width="170" height="60" rx="3"/>
+          <text class="label" x="135" y="324">L4 · 问题 schema</text>
+          <text class="sub"   x="135" y="343">schema 内嵌在 HTML</text>
+        </g>
+
+        <!-- Edges within browser zone -->
+        <line class="edge" x1="220" y1="110" x2="290" y2="180" marker-end="url(#arr)"/>
+        <text class="edge-label" x="245" y="138">读取</text>
+
+        <line class="edge-dim" x1="220" y1="200" x2="290" y2="200" marker-end="url(#arr-dim)"/>
+        <text class="edge-label" x="252" y="194">同步</text>
+
+        <line class="edge" x1="135" y1="142" x2="135" y2="178" marker-end="url(#arr)"/>
+
+        <line class="edge-dim" x1="135" y1="234" x2="135" y2="300" marker-end="url(#arr-dim)" stroke-dasharray="3 3"/>
+        <text class="edge-label" x="170" y="270">读 schema</text>
+
+        <!-- Trigger fanin into localStorage -->
+        <line class="edge" x1="640" y1="135" x2="570" y2="190" marker-end="url(#arr)"/>
+        <line class="edge" x1="640" y1="190" x2="570" y2="200" marker-end="url(#arr)"/>
+        <line class="edge" x1="685" y1="245" x2="570" y2="220" marker-end="url(#arr)"/>
+        <text class="edge-label" x="595" y="170">writes</text>
+
+        <!-- Export arrow down out of browser zone -->
+        <path class="edge-export" d="M 430 260 L 430 320 L 250 320 L 250 470" marker-end="url(#arr-export)"/>
+        <text class="edge-label olive" x="334" y="312">⬇ 你点 "导出 JSON" (手动)</text>
+
+        <!-- ═══ ZONE: DISK (bottom-left) ═══ -->
+        <rect class="node-zone" x="20" y="450" width="500" height="170" rx="6"/>
+        <text class="zone-label" x="40" y="442">💾  用户电脑磁盘（用户完全控制）</text>
+
+        <!-- JSON backup file L2 -->
+        <g class="node" data-k="json-backup">
+          <rect class="node-success bg" x="50" y="480" width="270" height="74" rx="3"/>
+          <text class="label invert" x="185" y="510">L2 · JSON 备份文件</text>
+          <text class="sub invert" x="185" y="530">~/Downloads/v6-interview-backup-*.json</text>
+          <text class="sub invert" x="185" y="546" style="font-weight:700; opacity:1;">灾难恢复 · 完全你掌控</text>
+        </g>
+
+        <!-- Import path back -->
+        <g class="node" data-k="import-flow">
+          <rect class="node-process bg" x="350" y="490" width="150" height="54" rx="3"/>
+          <text class="label" x="425" y="514">⇧ 导入 JSON</text>
+          <text class="sub"   x="425" y="532">换电脑 / 浏览器时</text>
+        </g>
+
+        <line class="edge-export" x1="320" y1="517" x2="350" y2="517" marker-end="url(#arr-export)"/>
+        <line class="edge-export" x1="425" y1="490" x2="425" y2="430" marker-end="url(#arr-export)"/>
+
+        <!-- ═══ ZONE: NEVER (bottom-right) ═══ -->
+        <rect class="node-zone-warn" x="540" y="450" width="360" height="170" rx="6"/>
+        <text class="zone-label warn" x="560" y="442">🚫  完全不存在的东西</text>
+
+        <g class="node" data-k="no-server">
+          <rect class="node-error bg" x="560" y="480" width="155" height="40" rx="3"/>
+          <text class="label" x="637" y="504" style="fill:#C2502C;">❌ 后端服务器</text>
+        </g>
+        <g class="node" data-k="no-db">
+          <rect class="node-error bg" x="725" y="480" width="155" height="40" rx="3"/>
+          <text class="label" x="802" y="504" style="fill:#C2502C;">❌ 数据库</text>
+        </g>
+        <g class="node" data-k="no-cloud">
+          <rect class="node-error bg" x="560" y="535" width="155" height="40" rx="3"/>
+          <text class="label" x="637" y="559" style="fill:#C2502C;">❌ 云存储</text>
+        </g>
+        <g class="node" data-k="no-network">
+          <rect class="node-error bg" x="725" y="535" width="155" height="40" rx="3"/>
+          <text class="label" x="802" y="559" style="fill:#C2502C;">❌ 网络请求</text>
+        </g>
+
+      </svg>
+    </div>
+
+    <!-- ═════════════════════════════ PANEL ═════════════════════════════ -->
+    <aside class="panel">
+      <div class="hint">点击左侧任意节点 →</div>
+      <h3 id="p-title">L1 · localStorage</h3>
+      <div class="meta" id="p-meta">主存储 · 单一真相之源</div>
+      <div id="p-body"></div>
+      <pre id="p-code"></pre>
+    </aside>
+
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="swatch data"></span>主存储 (L1)</div>
+    <div class="item"><span class="swatch process"></span>HTML/JS 层</div>
+    <div class="item"><span class="swatch transient"></span>易失 / 只读 schema</div>
+    <div class="item"><span class="swatch decision"></span>保存触发点</div>
+    <div class="item"><span class="swatch success"></span>JSON 备份 (L2)</div>
+    <div class="item"><span class="swatch error"></span>不存在的东西</div>
+  </div>
+
+  <p class="caption">
+    从左到右、从上到下读：<em>HTML/JS</em> 把内存里的 state 同步到 <em>localStorage</em>；五个保存触发点（input / blur / 翻题 / beforeunload / visibility）冗余地往 L1 写；你手动点"导出"，L1 的快照下载成 JSON 文件存到 ~/Downloads。<em>没有任何远程服务参与</em>。
+  </p>
+
+</section>
+</div>
+
+<footer>
+  <span>interviewer skill · architecture · diagram + warm-paper</span>
+  <span><a href="SKILL.md">SKILL.md</a> · <a href="references/data-contract.md">data-contract.md</a> · <a href="references/schema-design.md">schema-design.md</a></span>
+</footer>
+
+<script>
+  /* ============================================================
+     DETAIL DICT — one entry per data-k.
+     body uses innerHTML; code uses textContent.
+  ============================================================ */
+  window.DETAIL = {
+    "html-js": {
+      title: "HTML / JS 层",
+      meta: "运行时 · 浏览器进程",
+      badge: '<span class="badge muted">PROCESS</span>',
+      body: `
+        <p>生成的采访 HTML 文件 (约 700 行单文件) 由 <code>interviewer</code> skill 从 <code>templates/interview-app.html</code> 模板生成。打开页面时浏览器会读这个文件、解析嵌入的 JSON schema、渲染 UI、绑事件监听器。</p>
+        <ul>
+          <li><strong>所有逻辑都在这里</strong>：渲染问题、监听输入、调 setItem 写 localStorage、监听各种保存触发事件</li>
+          <li><strong>schema 内嵌</strong>：N 个原子问题（题量取决于采访题材）用 <code>&lt;script type="application/json"&gt;</code> 嵌在文件里 — 避免 file:// CORS 麻烦</li>
+          <li><strong>零依赖</strong>：不引 React / Vue / 任何 framework，原生 vanilla JS + DOM API</li>
+        </ul>
+      `,
+      code: ""
+    },
+    "js-memory": {
+      title: "L3 · JS 内存",
+      meta: "易失 · 刷新即失",
+      body: `
+        <p><strong>state 变量</strong> 是 JS 在内存里维护的当前会话数据。结构上跟 L1 完全镜像，但<em>关浏览器就没</em>。</p>
+        <ul>
+          <li>读：页面打开时从 L1 反序列化加载到内存</li>
+          <li>写：每次用户输入先改内存，再同步 flush 到 L1（防御性的双写）</li>
+          <li>失败模式：刷新就丢，但只是丢了缓冲，<strong>真数据在 L1 上</strong></li>
+        </ul>
+      `,
+      code: `// 启动时
+let state = loadState();  // 从 localStorage 反序列化
+
+// 输入时
+state.answers[q.id] = { text, saved_at };
+saveStateDebounced();      // 200ms 内同步到 L1`
+    },
+    "localstorage": {
+      title: "L1 · localStorage",
+      meta: "主存储 · 单一真相之源",
+      body: `
+        <p><strong>所有答案都存在这里</strong>。这是你访谈数据的<em>唯一真相之源</em>。</p>
+        <ul>
+          <li><strong>容量</strong>：5–10 MB 由浏览器决定 · 你的访谈最多几十 KB · 用不完</li>
+          <li><strong>持久化</strong>：关浏览器、关机、几个月不开都还在</li>
+          <li><strong>消失条件</strong>：① 你手动清浏览数据 ② 隐私模式过期 ③ 极端配额满</li>
+          <li><strong>访问范围</strong>：同 file:// 路径打开能读到 · <em>换浏览器或换电脑读不到</em></li>
+          <li><strong>跨域隔离</strong>：不会泄漏给其他网站 · localStorage 严格按 origin 隔离</li>
+        </ul>
+        <p>你打开 DevTools → Application → Local Storage 就能直接看到这个 key/value 对：</p>
+      `,
+      code: `key:   "interviewer-&lt;topic-slug&gt;-v1"
+value: "{
+  \\"answers\\": {
+    \\"r1-q1\\": { \\"text\\": \\"3 月份开始\\", \\"saved_at\\": \\"...\\" },
+    ...
+  },
+  \\"skipped\\": { \\"r2-q3\\": true },
+  \\"current_index\\": 5,
+  \\"last_saved\\": \\"2026-05-18T...\\",
+  \\"schema_version\\": 2
+}"`
+    },
+    "schema": {
+      title: "L4 · 问题 schema",
+      meta: "只读 · 项目仓库",
+      body: `
+        <p>schema 是问题清单的纯结构定义（topics / questions / kinds），<em>不存任何答案</em>。HTML 启动时读的是<strong>嵌入在 HTML 内的 schema</strong>（避免 file:// CORS）。</p>
+        <ul>
+          <li>schema 由 skill 在生成时从 Phase 2 的设计 inline 进 HTML</li>
+          <li>HTML 内嵌版本是运行时唯一来源 — 没有外部 JSON 文件需要维护</li>
+          <li>修改问题清单 = 重新生成 HTML（旧的答案在 localStorage 里继续可用）</li>
+        </ul>
+      `,
+      code: ""
+    },
+    "trigger-input": {
+      title: "① 输入即写",
+      meta: "input 事件 · debounced 200ms",
+      body: `
+        <p><strong>最频繁的保存路径</strong>。每次按键 → reset 200ms timer → 200ms 内没新输入才 setItem。</p>
+        <ul>
+          <li>为什么 debounce？localStorage.setItem 是<em>同步阻塞</em>调用，飞快打字时会让输入卡顿</li>
+          <li>200ms 是体感不到延迟、但能合并多次写入的甜点</li>
+          <li>如果你 300ms 内输入又停顿 → 中间已经写过一次了</li>
+        </ul>
+      `,
+      code: `textarea.addEventListener('input', () => {
+  state.answers[q.id] = { text, saved_at };
+  saveStateDebounced();   // 200ms 内合并多次 setItem
+});`
+    },
+    "trigger-blur": {
+      title: "② 失焦立即写",
+      meta: "blur 事件 · 不等 debounce",
+      body: `
+        <p>textarea 失去焦点时<strong>立即保存</strong>，跳过 debounce。</p>
+        <ul>
+          <li>你 Tab / 鼠标点别的地方 / 切窗口 → 任何让 textarea 失焦的动作都触发</li>
+          <li>这是防 200ms debounce 还没 fire 就崩溃 / 切走的 last-mile 保险</li>
+        </ul>
+      `,
+      code: `textarea.addEventListener('blur', saveStateNow);`
+    },
+    "trigger-nav": {
+      title: "③ 翻题前后两次写",
+      meta: "click 上一题 / 下一题 / 跳过",
+      body: `
+        <p>每次翻题<strong>前后各保存一次</strong>。</p>
+        <ul>
+          <li>翻题前：把当前答案落到 L1</li>
+          <li>翻题后：把新的 current_index 落到 L1</li>
+          <li>双写防止"答案存了但进度没存"或反之的部分失败</li>
+        </ul>
+      `,
+      code: `function navigate(delta) {
+  saveStateNow();              // 前一题答案落地
+  state.current_index += delta;
+  saveStateNow();              // 新进度落地
+  render();
+}`
+    },
+    "trigger-unload": {
+      title: "④ 关页保存",
+      meta: "beforeunload 事件",
+      body: `
+        <p>浏览器在卸载页面前<strong>最后一次给 JS 跑</strong>的机会。我们用它做"关页前最后保存"。</p>
+        <ul>
+          <li>关 tab / 关浏览器 / 跳到其他 URL 都会触发</li>
+          <li>这是兜底中的兜底 — 即使前 3 个触发点都没 fire，关页前也会保一次</li>
+          <li>注意：浏览器对此事件有时间限制（几百毫秒），所以保存逻辑必须同步快速</li>
+        </ul>
+      `,
+      code: `window.addEventListener('beforeunload', saveStateNow);`
+    },
+    "trigger-vis": {
+      title: "⑤ 切标签保存",
+      meta: "visibilitychange 事件",
+      body: `
+        <p>页面可见性变化（切到其他 tab / 最小化 / 切到其他 app）时触发 — <em>比 beforeunload 更早</em>。</p>
+        <ul>
+          <li>是更安全的"用户走了"信号 — 用户可能只是切走，没关页</li>
+          <li>移动端尤其重要：iOS 经常不触发 beforeunload，但一定触发 visibilitychange</li>
+        </ul>
+      `,
+      code: `document.addEventListener('visibilitychange', () => {
+  if (document.hidden) saveStateNow();
+});`
+    },
+    "json-backup": {
+      title: "L2 · JSON 备份文件",
+      meta: "灾难恢复 · 你完全掌控",
+      body: `
+        <p>你点"导出 JSON"时生成的本地文件 — <strong>L1 在某时刻的快照</strong>。</p>
+        <ul>
+          <li><strong>位置</strong>：<code>~/Downloads/v6-interview-backup-{时间戳}.json</code></li>
+          <li><strong>角色</strong>：唯一能跨设备 / 跨浏览器恢复数据的途径</li>
+          <li><strong>建议</strong>：每答 5-10 题导出一次（系统会在每答 5 题时自动 toast 提醒）</li>
+          <li><strong>为什么不自动云备份</strong>？采访数据通常敏感，不想离开用户电脑</li>
+        </ul>
+        <p>每个备份带时间戳，<em>互相不会覆盖</em>。哪天误改了答案，旧版本备份还在。</p>
+      `,
+      code: `v6-interview-backup-2026-05-18T09-32-15.json
+v6-interview-backup-2026-05-18T11-04-03.json
+v6-interview-backup-2026-05-19T08-22-41.json
+...`
+    },
+    "import-flow": {
+      title: "导入 JSON · 跨设备恢复",
+      meta: "L2 → L1 反向流",
+      body: `
+        <p>当你换浏览器 / 换电脑时，<strong>导入 JSON</strong> 是把 L2 备份恢复到新浏览器 L1 的唯一路径。</p>
+        <ul>
+          <li>① 把 ~/Downloads/v6-interview-backup-*.json 拷到新设备</li>
+          <li>② 新浏览器打开生成的采访 HTML</li>
+          <li>③ 点"导入 JSON"，选刚才那份文件</li>
+          <li>④ 系统合并：incoming 答案优先，本地未冲突的保留</li>
+        </ul>
+        <p>这是为什么"L2 备份"不是可选项，而是<em>跨设备工作流的必需基础设施</em>。</p>
+      `,
+      code: ""
+    },
+    "no-server": {
+      title: "❌ 没有后端服务器",
+      meta: "故意 · 不存在",
+      body: `
+        <p>没有 Node / Python / Go / PHP 服务在跑，没有 API endpoint。</p>
+        <ul>
+          <li>为什么？这个 skill 的目标用户是单人内省 — 一份采访只服务用户一人，不需要"服务"</li>
+          <li>引入后端 = 10× 复杂度（部署、运维、auth、监控） + 0× 价值</li>
+          <li>做不到的事：实时多人协作、跨设备实时同步</li>
+          <li>但单人采访工具确实不需要这些 — 它不是 SaaS 产品</li>
+        </ul>
+      `,
+      code: ""
+    },
+    "no-db": {
+      title: "❌ 没有数据库",
+      meta: "故意 · 不存在",
+      body: `
+        <p>没有 MySQL / Postgres / Mongo / Redis / SQLite。</p>
+        <ul>
+          <li>localStorage 已经是 key-value 数据库 — 浏览器内置的</li>
+          <li>引入"真"数据库 = 多一个独立组件可靠性，整体 MTBF 反而变低</li>
+          <li>我们的数据量（几十 KB） 远没到需要 DB 的级别</li>
+        </ul>
+        <p>对比 IndexedDB（浏览器内置的"真"DB）：API 异步、需要事务、复杂度高。我们用不上。</p>
+      `,
+      code: ""
+    },
+    "no-cloud": {
+      title: "❌ 没有云存储",
+      meta: "故意 · 不存在",
+      body: `
+        <p>不会上传到 OSS / S3 / Google Drive / 公司内网。</p>
+        <ul>
+          <li>采访内容通常敏感（含人名、业务细节、个人反思）— 数据不离开用户电脑</li>
+          <li>备份方式是<em>明示的</em>：用户点"导出"才下载，完全知道数据去了哪</li>
+          <li>如果将来要云备份，可以基于 L2 JSON 文件手动上传到任何信任的地方</li>
+        </ul>
+      `,
+      code: ""
+    },
+    "no-network": {
+      title: "❌ 没有网络请求",
+      meta: "页面打开后零 fetch / XHR",
+      body: `
+        <p>关 wifi 也能正常用。</p>
+        <ul>
+          <li>HTML 文件本地双击就能跑</li>
+          <li>没有任何 CDN / Google Fonts / 远程 API</li>
+          <li>schema 嵌在 HTML 里（不需要 fetch 任何外部 JSON）</li>
+          <li>这意味着公司内网 / VPN 断网 / 飞机上 — 都能正常使用</li>
+        </ul>
+      `,
+      code: ""
+    }
+  };
+
+  /* ============================================================
+     Activation logic
+  ============================================================ */
+  (function () {
+    var nodes = document.querySelectorAll(".node[data-k]");
+    var T = document.getElementById("p-title");
+    var M = document.getElementById("p-meta");
+    var B = document.getElementById("p-body");
+    var C = document.getElementById("p-code");
+
+    function activate(node) {
+      nodes.forEach(function (n) { n.classList.remove("active"); });
+      node.classList.add("active");
+      var d = window.DETAIL[node.dataset.k];
+      if (!d) return;
+      T.innerHTML = d.title;
+      M.textContent = d.meta || "";
+      var bodyHtml = (d.badge ? d.badge : "") + d.body;
+      B.innerHTML = bodyHtml;
+      C.textContent = d.code || "";
+      C.style.display = d.code ? "block" : "none";
+    }
+
+    nodes.forEach(function (n) {
+      n.addEventListener("click", function () { activate(n); });
+      n.setAttribute("tabindex", "0");
+      n.setAttribute("role", "button");
+      n.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(n); }
+      });
+    });
+
+    // Pre-activate localStorage (the hero node)
+    var hero = document.querySelector('.node[data-k="localstorage"]');
+    if (hero) activate(hero);
+  })();
+</script>
+
+</body>
+</html>

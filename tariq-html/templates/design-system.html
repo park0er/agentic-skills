@@ -1,0 +1,296 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: design-system
+  Token catalog: colors / typography / spacing / components.
+  Click-to-copy on swatches via clipboard API (graceful fallback).
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[DS_TITLE — e.g. 内部分享 · Design System]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  CN typography renders consistently regardless of installed fonts.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  /* PALETTE — design-system reads well in either palette.
+     Default Swiss; swap to warm-paper for editorial token catalogs. */
+  /* ============================================================
+     TYPE — CJK-safe font stacks. Shared across both palettes.
+     Rationale: any family that may render Chinese must include a CJK
+     fallback (kami's rule). Mono especially — `Menlo, Consolas` alone
+     renders 中文注释 as tofu on Windows. See references/design-tokens.md.
+  ============================================================ */
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --lemon-green: #B5DF4A;
+    --safety-orange: #FF6B00;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+  }
+  /* ── warm-paper alt:
+  :root {
+    --klein: #B85C3E; --lemon-yellow: #E3DACC; --lemon-green: #788C5D;
+    --safety-orange: #C2502C; --ink: #141413; --mute: #87867F;
+    --bg: #FAF9F5; --card: #FFFFFF;
+  } ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — kami's rule: TsangerJinKai-class CN fonts
+     read denser than Latin; a hair of letter-spacing opens up paragraphs. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: #efefe9; padding: 1px 5px; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 48px 24px 96px; }
+  .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 12px; }
+  h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; letter-spacing: -0.02em; line-height: 1.05; margin-bottom: 16px; }
+  h1 em { color: var(--klein); font-style: italic; }
+
+  section { margin-top: 56px; }
+  .sec-head { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: baseline; margin-bottom: 24px; }
+  .sec-num { font-size: 36px; font-weight: 900; color: var(--klein); line-height: 1; }
+  .sec-title { font-size: 24px; font-weight: 800; }
+
+  /* color swatches */
+  .swatches {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
+  .swatch {
+    background: var(--card); border: 1.5px solid var(--ink);
+    cursor: pointer; transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .swatch:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--klein); }
+  .swatch .chip { height: 80px; }
+  .swatch .meta { padding: 12px; }
+  .swatch .name { font-weight: 700; font-size: 13px; }
+  .swatch .hex { font-family: var(--font-mono); font-size: 12px; color: var(--mute); margin-top: 2px; }
+  .swatch .copied { color: var(--klein); font-size: 11px; opacity: 0; transition: opacity 200ms; margin-top: 4px; }
+  .swatch.flash .copied { opacity: 1; }
+
+  /* type scale — click row to copy CSS variable */
+  .type-row {
+    background: var(--card); border: 1px solid var(--ink);
+    display: grid; grid-template-columns: 120px 1fr auto;
+    padding: 16px; align-items: baseline; margin-bottom: 8px;
+    gap: 16px; cursor: copy; transition: background 120ms ease;
+  }
+  .type-row:hover { background: #fffbde; }
+  .type-row .copy-hint {
+    font-family: var(--font-mono); font-size: 10px;
+    color: var(--mute); letter-spacing: 0.05em;
+  }
+  .type-row.flash .copy-hint { color: var(--klein); font-weight: 700; }
+  .type-row .meta { font-family: var(--font-mono); font-size: 11px; color: var(--mute); }
+  .type-row .meta b { color: var(--ink); display: block; font-size: 13px; font-family: inherit; font-weight: 700; }
+  .type-row .sample { color: var(--ink); }
+  .t-h1 { font-size: 56px; font-weight: 900; letter-spacing: -0.02em; line-height: 1; }
+  .t-h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.05; }
+  .t-h3 { font-size: 22px; font-weight: 700; line-height: 1.2; }
+  .t-body { font-size: 15px; line-height: 1.55; }
+  .t-meta { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); }
+
+  /* spacing scale — click swatch to copy `--space-N` token */
+  .spacing-grid { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+  .sp {
+    display: inline-block; background: var(--klein);
+    border: 1px solid var(--ink);
+    text-align: center; padding-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px; color: white; font-weight: 700;
+    cursor: copy; transition: transform 120ms ease;
+  }
+  .sp:hover { transform: translateY(-2px); }
+  .sp.flash { background: var(--ink); }
+
+  /* component sheet */
+  .components { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  .row {
+    background: var(--card); border: 1px solid var(--ink); padding: 20px;
+  }
+  .row .name { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-bottom: 12px; }
+  .row .states { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+
+  /* sample components */
+  .btn { font: inherit; padding: 10px 18px; border: 1.5px solid var(--ink); background: var(--card); cursor: pointer; }
+  .btn.primary { background: var(--klein); color: white; border-color: var(--klein); }
+  .btn:hover { background: var(--lemon-yellow); }
+  .btn.primary:hover { background: var(--ink); }
+  .btn[disabled] { opacity: 0.4; cursor: not-allowed; background: var(--card); color: var(--mute); }
+
+  .badge { padding: 2px 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; border: 1px solid var(--ink); border-radius: 999px; }
+  .badge.go { background: var(--lemon-green); }
+  .badge.warn { background: var(--lemon-yellow); }
+  .badge.no { background: var(--safety-orange); color: white; border-color: var(--safety-orange); }
+
+  .input {
+    font: inherit; padding: 8px 12px; border: 1.5px solid var(--ink); background: var(--card);
+    width: 220px;
+  }
+  .input:focus { outline: 2px solid var(--klein); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">[CONTEXT · DATE · v1]</div>
+  <h1>[Project name] <em>·</em> Design System</h1>
+
+  <section>
+    <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">颜色 · 点击复制</div></div>
+    <div class="swatches">
+      <div class="swatch" data-hex="#002FA7"><div class="chip" style="background:#002FA7"></div><div class="meta"><div class="name">Klein</div><div class="hex">#002FA7</div><div class="copied">已复制</div></div></div>
+      <div class="swatch" data-hex="#FFED00"><div class="chip" style="background:#FFED00"></div><div class="meta"><div class="name">Lemon Yellow</div><div class="hex">#FFED00</div><div class="copied">已复制</div></div></div>
+      <div class="swatch" data-hex="#B5DF4A"><div class="chip" style="background:#B5DF4A"></div><div class="meta"><div class="name">Lemon Green</div><div class="hex">#B5DF4A</div><div class="copied">已复制</div></div></div>
+      <div class="swatch" data-hex="#FF6B00"><div class="chip" style="background:#FF6B00"></div><div class="meta"><div class="name">Safety Orange</div><div class="hex">#FF6B00</div><div class="copied">已复制</div></div></div>
+      <div class="swatch" data-hex="#111111"><div class="chip" style="background:#111"></div><div class="meta"><div class="name">Ink</div><div class="hex">#111111</div><div class="copied">已复制</div></div></div>
+      <div class="swatch" data-hex="#fafaf7"><div class="chip" style="background:#fafaf7;border-bottom:1px solid #ccc"></div><div class="meta"><div class="name">Page BG</div><div class="hex">#fafaf7</div><div class="copied">已复制</div></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="sec-num">02</div><div class="sec-title">字号 / 字重 · 点击复制 CSS</div></div>
+    <div class="type-row" data-css="font: 900 56px/1 sans-serif; letter-spacing: -0.02em;">
+      <div class="meta"><b>H1</b>56 · 900 · -0.02em</div><div class="sample t-h1">主标题 Headline</div><div class="copy-hint">复制</div>
+    </div>
+    <div class="type-row" data-css="font: 800 32px/1.05 sans-serif; letter-spacing: -0.01em;">
+      <div class="meta"><b>H2</b>32 · 800 · -0.01em</div><div class="sample t-h2">章节标题 Section Title</div><div class="copy-hint">复制</div>
+    </div>
+    <div class="type-row" data-css="font: 700 22px/1.2 sans-serif;">
+      <div class="meta"><b>H3</b>22 · 700</div><div class="sample t-h3">子标题 Subhead</div><div class="copy-hint">复制</div>
+    </div>
+    <div class="type-row" data-css="font: 400 15px/1.55 sans-serif;">
+      <div class="meta"><b>Body</b>15 · 400 · 1.55</div><div class="sample t-body">正文 — 中英混排时使用 PingFang / Helvetica Neue 系统字体栈，足以覆盖大部分场景。</div><div class="copy-hint">复制</div>
+    </div>
+    <div class="type-row" data-css="font: 700 11px/1 sans-serif; letter-spacing: 0.18em; text-transform: uppercase;">
+      <div class="meta"><b>Meta</b>11 · 0.18em UPPER</div><div class="sample t-meta">元数据 / 眉头</div><div class="copy-hint">复制</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="sec-num">03</div><div class="sec-title">间距尺度 · 点击复制 token</div></div>
+    <div class="spacing-grid">
+      <div class="sp" data-token="--space-1: 4px"  style="width:4px;height:48px;">4</div>
+      <div class="sp" data-token="--space-2: 8px"  style="width:8px;height:64px;">8</div>
+      <div class="sp" data-token="--space-3: 12px" style="width:12px;height:80px;">12</div>
+      <div class="sp" data-token="--space-4: 16px" style="width:16px;height:96px;">16</div>
+      <div class="sp" data-token="--space-5: 24px" style="width:24px;height:120px;">24</div>
+      <div class="sp" data-token="--space-6: 32px" style="width:32px;height:144px;">32</div>
+      <div class="sp" data-token="--space-7: 48px" style="width:48px;height:168px;">48</div>
+      <div class="sp" data-token="--space-8: 64px" style="width:64px;height:192px;">64</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">组件 · 真实状态（hover / focus / disabled 都是真的）</div></div>
+    <div class="components">
+      <div class="row">
+        <div class="name">Button · Primary</div>
+        <div class="states">
+          <button class="btn primary">Default</button>
+          <button class="btn primary" disabled>Disabled</button>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--mute);">↑ hover / focus 真实生效</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="name">Button · Secondary</div>
+        <div class="states">
+          <button class="btn">Default</button>
+          <button class="btn" disabled>Disabled</button>
+          <span style="font-family:var(--font-mono);font-size:11px;color:var(--mute);">↑ hover / focus 真实生效</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="name">Badge</div>
+        <div class="states">
+          <span class="badge go">Go</span>
+          <span class="badge warn">Warn</span>
+          <span class="badge no">No-go</span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="name">Input</div>
+        <div class="states">
+          <input class="input" placeholder="Default">
+          <input class="input" value="Filled">
+          <input class="input" disabled value="Disabled">
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // Universal click-to-copy: swatches (hex) + type rows (CSS) + spacing chips (token).
+  function copy(text, el, flashCls) {
+    const onCopied = () => { el.classList.add(flashCls); setTimeout(() => el.classList.remove(flashCls), 1200); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onCopied).catch(() => {});
+    } else {
+      const r = document.createRange(); const sel = window.getSelection();
+      const span = document.createElement('span'); span.textContent = text; document.body.appendChild(span);
+      r.selectNode(span); sel.removeAllRanges(); sel.addRange(r);
+      try { document.execCommand('copy'); onCopied(); } catch (e) {}
+      sel.removeAllRanges(); document.body.removeChild(span);
+    }
+  }
+  document.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => copy(s.dataset.hex, s, 'flash'));
+  });
+  document.querySelectorAll('.type-row[data-css]').forEach(r => {
+    r.addEventListener('click', () => copy(r.dataset.css, r, 'flash'));
+  });
+  document.querySelectorAll('.sp[data-token]').forEach(s => {
+    s.addEventListener('click', () => copy(s.dataset.token, s, 'flash'));
+  });
+</script>
+
+</body>
+</html>

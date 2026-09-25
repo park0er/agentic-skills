@@ -1,0 +1,144 @@
+{
+  "skill_name": "claude-sync-doctor",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "In an isolated fake Claude/iCloud workspace, verify that all expected file and directory symlinks are healthy and that Claude Desktop metadata has no orphaned transcript references.",
+      "expected_output": "The Doctor reports all manifest entries OK and desktop orphan count 0 without modifying real user files.",
+      "files": [],
+      "expectations": [
+        "All manifest entries are classified as OK.",
+        "Desktop orphan count is 0 using the fake workspace, not the real home directory.",
+        "The command emits machine-readable JSON suitable for automation."
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "In an isolated fake workspace, simulate atomic replace turning a managed symlink into a newer regular local file, then repair it.",
+      "expected_output": "The Doctor copies the newer local file to the cloud target, backs up both sides as needed, restores the symlink, and a follow-up check returns OK.",
+      "files": [],
+      "expectations": [
+        "The cloud target receives the newer local content.",
+        "The local path is restored as a symlink to the cloud target.",
+        "A backup directory is created before destructive relinking.",
+        "A follow-up check returns OK for the entry."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "In an isolated fake workspace, simulate the same atomic replace break while Claude is running and run safe repair.",
+      "expected_output": "The Doctor preserves data by copying local content to cloud, but defers deleting/relinking the local file while Claude is running.",
+      "files": [],
+      "expectations": [
+        "The cloud target is updated with local content.",
+        "The local path remains a regular file rather than being relinked.",
+        "The report explicitly says relink was deferred because Claude is running."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "In an isolated fake workspace, simulate local and cloud having divergent file contents with no reliable ledger and nearly identical mtimes.",
+      "expected_output": "The Doctor refuses to pick a winner, leaves both files untouched, and reports a conflict.",
+      "files": [],
+      "expectations": [
+        "The cloud file content is unchanged.",
+        "The local file content is unchanged.",
+        "No symlink is created.",
+        "The report contains a conflict/no automatic overwrite action."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "In an isolated fake workspace, simulate a directory symlink pointing to the wrong target and repair it.",
+      "expected_output": "The Doctor identifies WRONG_SYMLINK_TARGET and replaces the symlink with the expected cloud target.",
+      "files": [],
+      "expectations": [
+        "The pre-repair status is WRONG_SYMLINK_TARGET.",
+        "The local path is a symlink after repair.",
+        "The symlink target equals the expected cloud directory.",
+        "A follow-up check returns OK."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "In an isolated fake workspace, compare a real local directory and a real cloud directory with only-local, only-cloud, and changed files.",
+      "expected_output": "Deep-check reports the tree drift counts and representative samples without modifying either directory.",
+      "files": [],
+      "expectations": [
+        "Deep-check reports one only-local file.",
+        "Deep-check reports one only-cloud file.",
+        "Deep-check reports one changed file.",
+        "Neither directory is modified."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "In an isolated fake workspace, create Claude Desktop metadata pointing to a missing transcript, then add the transcript.",
+      "expected_output": "The first check reports one orphan, and the second check reports zero orphans after the transcript is added.",
+      "files": [],
+      "expectations": [
+        "The orphan check uses fake manifest paths.",
+        "Missing transcript yields orphan count 1.",
+        "Adding the matching JSONL transcript yields orphan count 0."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Generate the Doctor LaunchAgent plist in dry-run mode.",
+      "expected_output": "The plist is syntactically valid and runs repair --safe --apply --update-state --quiet every 300 seconds.",
+      "files": [],
+      "expectations": [
+        "The generated plist is valid.",
+        "ProgramArguments include repair --safe --apply --update-state --quiet.",
+        "StartInterval is 300.",
+        "Dry-run does not write to the real LaunchAgents directory."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "In an isolated fake workspace, run the handoff flow with --yes --force after atomic replace turns a managed symlink into a regular local file.",
+      "expected_output": "The Doctor performs the repair, restores the symlink, updates the cloud copy, runs a final check, and prints HANDOFF_READY.",
+      "files": [],
+      "expectations": [
+        "The local file is restored as a symlink to the cloud target.",
+        "The cloud target contains the newer local content.",
+        "The final report prints HANDOFF_READY.",
+        "The final report shows desktop orphan count 0."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "In an isolated fake workspace, create Claude Desktop metadata under a foreign owner group with a valid matching Claude Code transcript, while the current owner group does not contain that metadata.",
+      "expected_output": "desktop-check reports one visible missing metadata record, and desktop-repair --apply copies it into the current owner group. A follow-up desktop-check reports zero visible missing records.",
+      "files": [],
+      "expectations": [
+        "The current ownerAccountId is read from cowork-enabled-cli-ops.json.",
+        "The repair copies only local_*.json metadata, not Local Storage or LevelDB.",
+        "The copied metadata still points at the original cliSessionId.",
+        "The repair is idempotent when run again."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "In an isolated fake workspace, create foreign Claude Desktop metadata whose cliSessionId has no matching transcript.",
+      "expected_output": "desktop-repair --apply reports the record as an orphan and does not copy it into the current owner group.",
+      "files": [],
+      "expectations": [
+        "Missing transcript yields desktop visibility orphan count 1.",
+        "No target metadata file is created for the orphan.",
+        "The orphan remains visible in the report for manual investigation."
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Run regular check --json in an isolated fake workspace with foreign-but-valid Desktop metadata missing from the current owner group.",
+      "expected_output": "The JSON response includes desktopVisibility with missingVisibleCount 1 in addition to existing desktopOrphans information.",
+      "files": [],
+      "expectations": [
+        "check --json includes desktopVisibility.",
+        "missingVisibleCount reflects owner-group UI visibility, not transcript existence.",
+        "desktopOrphans remains zero when the transcript exists."
+      ]
+    }
+  ]
+}

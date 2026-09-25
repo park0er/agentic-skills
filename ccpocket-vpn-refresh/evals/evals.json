@@ -1,0 +1,26 @@
+{
+  "skill_name": "ccpocket-vpn-refresh",
+  "evals": [
+    {
+      "id": 0,
+      "name": "first-run-setup",
+      "prompt": "我刚装了 CC Pocket 这个 iOS App，想在我的 Mac 上配一套自动的方案：我挂着小米 VPN，VPN 每隔一段时间会重连。我不想每次重连之后手动去重启 ccpocket 的 bridge。帮我装一下这个 ccpocket-vpn-refresh 的东西吧，skill 应该已经在你那边可用了。",
+      "expected_output": "Claude should recognize this is a first-run setup, detect that ~/.ccpocket-helper/config.json does not exist, run install.sh, report on the auto-detected VPN interface, confirm the config was written, and point the user to the refresh command for next time. The smoke test may warn about port conflict (existing bridge running), which is expected and should be surfaced clearly, not treated as fatal.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "vpn-reconnect-refresh",
+      "prompt": "我刚重连了一下小米 VPN，ccpocket bridge 现在还通吗？要不要刷新一下？",
+      "expected_output": "Claude should invoke refresh.sh (or equivalent). It must detect the current VPN IP on the stored utun interface, compare with state.json's last_vpn_ip, and report which of the four cases matches (bridge alive + IP unchanged / bridge alive + IP changed / bridge dead + IP unchanged / bridge dead + IP changed). If the IP changed, a fresh QR should be displayed from the bridge log. Claude should tell the user whether they need to re-scan the QR on iPhone.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "status-check",
+      "prompt": "check my ccpocket bridge status please",
+      "expected_output": "Claude should report the bridge's current status — PID if running, the current VPN IP, the WebSocket URL (ws://IP:PORT), and when it was last started. The output should be concise and scannable, not a full refresh cycle. Use bridge-ctl.sh status or refresh.sh depending on what the skill prefers.",
+      "files": []
+    }
+  ]
+}

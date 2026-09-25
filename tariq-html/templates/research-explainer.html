@@ -1,0 +1,316 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: research-explainer
+  Concept / feature deep-dive. Tariq warm-paper palette by default
+  (editorial feel). Switch :root to Swiss if Parker prefers.
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[PAGE_TITLE — e.g. 一致性哈希 · 深度讲解]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  Serif-led editorial template — Noto Serif SC carries the headline hierarchy,
+  so font load is more critical here than on Swiss-default templates.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  :root {
+    --ivory:  #FAF9F5;
+    --paper:  #FFFFFF;
+    --slate:  #141413;
+    --clay:   #D97757;
+    --clay-d: #B85C3E;
+    --oat:    #E3DACC;
+    --olive:  #788C5D;
+    --g100:   #F0EEE6;
+    --g200:   #E6E3DA;
+    --g300:   #D1CFC5;
+    --g500:   #87867F;
+    --g700:   #3D3D3A;
+
+    /* TYPE — CJK-safe stacks (kami-aligned). Serif-led: warm-paper template
+       leans on serif for hierarchy; CN serif fallback chain follows kami. */
+    --serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", ui-serif, Georgia, "Times New Roman", Times,
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --sans:
+      "Noto Sans SC", system-ui, -apple-system, "Segoe UI", "Helvetica Neue",
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      Roboto, Helvetica, Arial, sans-serif;
+    --mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--ivory); color: var(--slate); font-family: var(--sans); font-size: 16.5px; line-height: 1.65; -webkit-font-smoothing: antialiased; }
+  /* CN density compensation — kami's rule: serif-led CN reads denser; a hair of
+     letter-spacing opens up paragraphs without breaking density. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 64px 24px 120px; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--g500); margin-bottom: 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eyebrow::before { content: ""; width: 24px; height: 1.5px; background: var(--clay); }
+
+  h1 {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(38px, 5.4vw, 62px);
+    line-height: 1.06; letter-spacing: -0.018em;
+    margin-bottom: 16px; max-width: 17ch;
+  }
+  h1 em { font-style: italic; color: var(--clay); }
+
+  /* TL;DR (warm-paper variant: clay-tinted, not yellow) */
+  .tldr {
+    background: var(--paper); border: 1.5px solid var(--g300); border-left: 4px solid var(--clay);
+    padding: 18px 22px; margin: 32px 0; max-width: 720px;
+    font-size: 15.5px; line-height: 1.6;
+  }
+  .tldr .label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--clay); font-weight: 600; margin-bottom: 6px;
+  }
+
+  /* sticky toc */
+  nav.toc {
+    position: sticky; top: 0; z-index: 5; background: var(--ivory);
+    padding: 14px 0; border-bottom: 1px solid var(--g300);
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 0 -24px 32px; padding-left: 24px; padding-right: 24px;
+  }
+  nav.toc a {
+    font-size: 12.5px; padding: 6px 12px;
+    border: 1.5px solid var(--g300); border-radius: 999px;
+    color: var(--g700); background: var(--paper); text-decoration: none;
+  }
+  nav.toc a:hover { border-color: var(--slate); color: var(--slate); }
+  nav.toc a.spy-active { background: var(--slate); color: var(--ivory); border-color: var(--slate); }
+
+  section { margin-top: 56px; scroll-margin-top: 80px; }
+
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 16px; }
+  .sec-head .idx { font-family: var(--mono); font-size: 13px; color: var(--clay); font-weight: 600; width: 34px; flex-shrink: 0; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 28px; letter-spacing: -0.012em; }
+
+  p { margin: 14px 0; max-width: 720px; }
+  p a { color: var(--clay); text-decoration-color: var(--oat); text-underline-offset: 3px; }
+  p a:hover { text-decoration-color: var(--clay); }
+
+  pre, code { font-family: var(--mono); font-size: 13px; }
+  code { background: var(--g100); padding: 1px 5px; border-radius: 3px; }
+  pre {
+    background: var(--paper); border: 1px solid var(--g300);
+    padding: 16px; overflow-x: auto; line-height: 1.5;
+    margin: 16px 0;
+  }
+  pre code { background: none; padding: 0; }
+
+  /* details / collapsible — for deep parts */
+  details {
+    background: var(--paper); border: 1px solid var(--g300);
+    padding: 14px 18px; margin: 14px 0;
+  }
+  details > summary {
+    cursor: pointer; font-weight: 600; list-style: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  details > summary::before {
+    content: "+"; font-family: var(--mono); color: var(--clay); font-size: 18px; line-height: 1;
+  }
+  details[open] > summary::before { content: "−"; }
+  details > div { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--g100); }
+
+  /* tabbed code — pure CSS via :checked */
+  .tabs { background: var(--paper); border: 1px solid var(--g300); margin: 16px 0; }
+  .tabs > input[type="radio"] { display: none; }
+  .tabs > label {
+    display: inline-block; padding: 10px 16px; cursor: pointer;
+    font-size: 13px; border-bottom: 2px solid transparent;
+    color: var(--g700);
+  }
+  .tabs > input:checked + label { color: var(--slate); border-bottom-color: var(--clay); font-weight: 600; }
+  .tabs > .tab { display: none; padding: 16px; border-top: 1px solid var(--g100); }
+  .tabs > input#t1:checked ~ .tab.t1,
+  .tabs > input#t2:checked ~ .tab.t2,
+  .tabs > input#t3:checked ~ .tab.t3 { display: block; }
+
+  /* glossary sidebar */
+  .glossary {
+    background: var(--g100); border: 1px solid var(--g300);
+    padding: 18px 20px; margin: 24px 0;
+  }
+  .glossary h3 { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--g500); margin-bottom: 8px; }
+  .glossary dl { font-size: 14px; }
+  .glossary dt { font-weight: 600; margin-top: 8px; }
+  .glossary dd { color: var(--g700); margin-left: 0; }
+
+  /* inline diagram */
+  .figure { margin: 24px 0; text-align: center; }
+  .figure svg { max-width: 100%; height: auto; }
+  .figure .caption { font-family: var(--mono); font-size: 11px; color: var(--g500); margin-top: 8px; }
+
+  hr { border: none; border-top: 1px solid var(--g300); margin: 64px 0; }
+
+  footer {
+    margin-top: 96px; padding-top: 32px; border-top: 1.5px solid var(--g300);
+    font-size: 13px; color: var(--g500); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  footer .k { font-family: var(--serif); font-style: italic; color: var(--g700); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="eyebrow">[CONTEXT — e.g. INTERNAL DEEP-DIVE · 2026-05-16]</div>
+  <h1>[标题正文] <em>[斜体强调部分]</em></h1>
+
+  <div class="tldr">
+    <div class="label">TL;DR</div>
+    [一句话核心观点 + 一句话本文要给到的东西。]
+  </div>
+
+  <nav class="toc">
+    <a href="#why">01 · 为什么</a>
+    <a href="#how">02 · 怎么做</a>
+    <a href="#variants">03 · 变体</a>
+    <a href="#code">04 · 代码</a>
+    <a href="#faq">05 · FAQ</a>
+  </nav>
+
+  <section id="why">
+    <div class="sec-head"><span class="idx">01</span><h2>为什么会有这个问题</h2></div>
+    <p>[问题铺垫 — 不要直接讲方案，先讲为什么 naive 解法不行。]</p>
+    <p>[继续。需要图就用 .figure，需要展开就用 details。]</p>
+
+    <div class="figure">
+      <svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="240" cy="100" r="80" fill="none" stroke="#141413" stroke-width="2"/>
+        <circle cx="240" cy="20"  r="6" fill="#D97757"/>
+        <circle cx="320" cy="100" r="6" fill="#788C5D"/>
+        <circle cx="240" cy="180" r="6" fill="#D97757"/>
+        <circle cx="160" cy="100" r="6" fill="#D97757"/>
+      </svg>
+      <div class="caption">[Figure caption — 一句话说明。]</div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="sec-head"><span class="idx">02</span><h2>核心机制</h2></div>
+    <p>[正文。把直觉版本先讲清楚，再用 details 收起严谨版本。]</p>
+
+    <details>
+      <summary>展开：完整证明 / 严谨细节</summary>
+      <div>
+        <p>[严谨细节 — 公式、复杂度推导、边界情形。]</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="variants">
+    <div class="sec-head"><span class="idx">03</span><h2>常见变体</h2></div>
+    <p>[变体对比 — 用一个简短表格或 details 列。]</p>
+
+    <div class="glossary">
+      <h3>关键术语</h3>
+      <dl>
+        <dt>[Term A]</dt><dd>[一句话解释]</dd>
+        <dt>[Term B]</dt><dd>[一句话解释]</dd>
+        <dt>[Term C]</dt><dd>[一句话解释]</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="code">
+    <div class="sec-head"><span class="idx">04</span><h2>代码示例</h2></div>
+    <p>[代码示例 — 多语言可用 tabs。]</p>
+
+    <div class="tabs">
+      <input type="radio" name="lang" id="t1" checked>
+      <label for="t1">Python</label>
+      <input type="radio" name="lang" id="t2">
+      <label for="t2">Go</label>
+      <input type="radio" name="lang" id="t3">
+      <label for="t3">TypeScript</label>
+      <div class="tab t1"><pre><code># [Python sample]
+def example():
+    return 42</code></pre></div>
+      <div class="tab t2"><pre><code>// [Go sample]
+func Example() int {
+    return 42
+}</code></pre></div>
+      <div class="tab t3"><pre><code>// [TypeScript sample]
+export const example = (): number => 42;</code></pre></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="sec-head"><span class="idx">05</span><h2>常见疑问</h2></div>
+    <details>
+      <summary>[常见问题 1]</summary>
+      <div><p>[回答]</p></div>
+    </details>
+    <details>
+      <summary>[常见问题 2]</summary>
+      <div><p>[回答]</p></div>
+    </details>
+    <details>
+      <summary>[常见问题 3]</summary>
+      <div><p>[回答]</p></div>
+    </details>
+  </section>
+
+  <footer>
+    <span class="k">本页是单文件 · 离线可读</span>
+    <span>[作者] · [日期] · v[版本]</span>
+  </footer>
+</div>
+
+<script>
+  // Scroll-spy on the TOC: highlight which section is currently in view.
+  (function () {
+    var links = document.querySelectorAll('nav.toc a[href^="#"]');
+    var map = new Map(Array.from(links).map(function (a) { return [a.getAttribute('href').slice(1), a]; }));
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove('spy-active'); });
+        var a = map.get(e.target.id); if (a) a.classList.add('spy-active');
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    document.querySelectorAll('section[id]').forEach(function (s) { io.observe(s); });
+  })();
+</script>
+
+</body>
+</html>

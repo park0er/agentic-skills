@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rollica Release Notes"
+  short_description: "从 Issue 生成飞书与网页双端 Rollica 版本介绍"
+  default_prompt: "Use $rollica-release-notes to audit the current release, ask for any decisive missing information, and produce synchronized Markdown, Feishu, and webpage deliverables."

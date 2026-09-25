@@ -1,0 +1,276 @@
+{
+  "skill_name": "mify-model-gateway",
+  "evals": [
+    {
+      "id": 1,
+      "name": "check-specific-model",
+      "prompt": "公司大模型网关上有没有 DeepSeek V3.2 这个版本？我想把线上服务的 DeepSeek-R1 升级一下，但不确定 Mify 接没接最新的 V3.2。",
+      "expected_output": "应明确回答「有/没有」，列出实际命中的 DeepSeek 候选及各自 owner 和可直接复制的 {owner}/{id} 调用字符串，并推荐一个首选。不应让用户 copy-paste 到会 400 的裸 id 形式。",
+      "assertions": [
+        "明确表态 V3.2 存在或不存在",
+        "列出至少 2 个网关现有 DeepSeek 候选 id",
+        "给出可直接复制的 {owner}/{id} 调用字符串",
+        "给出明确的推荐首选 + 理由",
+        "不向用户提供含裸 id 的 curl 样例"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "list-by-type",
+      "prompt": "帮我看看 Mify 上面都有哪些 embedding 模型？我要给 RAG 项目选一个，最好是中文效果好的。",
+      "expected_output": "应正确使用 --type text-embedding，按 owner 分组展示候选（完整数据约 30 个），针对中文 RAG 场景给出推荐和理由。",
+      "assertions": [
+        "正确识别类型参数为 text-embedding（不是 embedding）",
+        "列出至少 25 个 embedding 模型",
+        "每个模型带 owner 信息或 {owner}/{id} 调用字符串",
+        "针对中文 RAG 场景给出推荐和理由"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "diagnose-400-not-supported",
+      "prompt": "我用 Mify 的 key 调 kimi-k2.5 一直返回 HTTP 400 'Param Incorrect: Not supported model kimi-k2.5'，但是我看 /v1/models 列表里明明有这个模型啊。到底咋回事？",
+      "expected_output": "核心诊断：Mify chat endpoint 要求 model 参数为 '{owner}/{id}' 格式，裸 id 一律 400。应建议用户改成 xiaomi/kimi-k2.5 或 tongyi/kimi-k2.5，并解释多 owner 歧义成因。",
+      "assertions": [
+        "根因诊断正确为缺少 {owner}/ 前缀",
+        "给出具体改法 xiaomi/kimi-k2.5 或 tongyi/kimi-k2.5",
+        "解释同名模型跨 owner 无法路由"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "recommend-fast-and-strong",
+      "prompt": "推荐一个性能强、启动又快的大模型给我用，最好是国产的，要接得上公司网关。",
+      "expected_output": "应交叉 Artificial Analysis Intelligence Index 今日榜单（按 country=cn + 尽量 non-reasoning 或 reasoning 中延迟友好的）与 Mify 网关实际可用 id 给推荐。必须同时包含两份数据源：业界 IQ 分数 + Mify 可用性（{owner}/{id} 格式）。如果榜单上有但网关上无（如 Kimi K2.6），应明确指出差距。",
+      "assertions": [
+        "调用 fetch_aa_rankings.py 并展示若干业界候选（带 IQ 分数）",
+        "用 country=cn 过滤或明确挑选国产模型",
+        "对候选用 list_models.py 交叉 Mify 可用性",
+        "给出 {owner}/{id} 格式的具体调用字符串",
+        "讨论 reasoning vs non-reasoning 的 TTFT 权衡（启动快要求）",
+        "指出业界最新 vs Mify 接入差距（若有）"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "onboarding-paste-key",
+      "prompt": "我刚拿到公司 Mify 的 API key，帮我装上好吧：sk-baHqKpPm61VJV0Fr8SikcUUy3AyyCNNbxsERrCwZBgS4dDR8",
+      "expected_output": "应自动调用 install_token.py（用 printf %s | ... 管道形式），脚本会校验 key 格式 + 实测 Mify 接口 + 写 ~/.config/mify/credentials (chmod 600) + 更新 ~/.zshrc。不应明文 export 了事、不应直接 echo key 到 stdout、不应教用户自己手动 mkdir。最后告知用户开新终端或 source credentials。",
+      "assertions": [
+        "使用 install_token.py 脚本（而不是手写 export / mkdir / chmod）",
+        "通过 stdin 管道传递 key（printf %s '...' | python3 ...，或等价方式），不放 argv",
+        "不在 stdout 里 echo 完整 key 明文",
+        "告知用户后续如何让新 shell 生效",
+        "不教用户自己写 zshrc 或去申请 key 以外的手动流程"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "set-cc-model-direct",
+      "prompt": "把 xiaomi/kimi-k2.5 设成我的 Claude Code 的 Sonnet 档模型吧。",
+      "expected_output": "应先用 set_cc_model.py --dry-run 展示将会发生的变更 diff，等用户确认后再去掉 --dry-run 真写。不应自己默默落盘；不应要求用户手动打开 settings.json。最后提醒重启 Claude Code 和 --revert 回滚路径。",
+      "assertions": [
+        "使用 set_cc_model.py 脚本（不是手写 edit settings.json）",
+        "先 --dry-run 展示 diff，再等确认才真写",
+        "显示 --tier 参数值是 sonnet（对应 ANTHROPIC_DEFAULT_SONNET_MODEL）",
+        "提示用户重启 Claude Code 才生效",
+        "告知 --revert 可以一键回滚",
+        "配置成功后主动 offer 查询上下文窗口并打 [1M] 标记"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "proactive-offer-after-recommendation",
+      "prompt": "最近想跑点重推理任务，公司网关上哪个 LLM 性能最强？我用的是 Claude Code。",
+      "expected_output": "应先按 Step 4 做推荐（AA 榜单 × Mify 可用性），然后**主动** offer 一句「要不要直接在 Claude Code 配置里切过去试试？」给出对应的 set_cc_model.py 命令（带 --dry-run）。不能在推荐完就结束话茬不 offer。",
+      "assertions": [
+        "先给出基于 AA 榜单和 Mify 可用性的 LLM 推荐",
+        "对推荐带具体 {owner}/{id} 调用字符串",
+        "主动 offer 帮用户改 Claude Code 配置（提到 set_cc_model.py 或 Step 5 落盘）",
+        "建议用 --dry-run 先预览 diff",
+        "提问用户要挂在哪一档（Haiku/Sonnet/Opus/all）或给出合理默认"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "set-cc-model-revert-on-regret",
+      "prompt": "我昨天把 Claude Code 的 Sonnet 模型切成了 azure_openai/gpt-5，结果不太顺手，想切回原来的配置，能搞吗？",
+      "expected_output": "应识别出这是 set_cc_model 的回滚场景，直接用 set_cc_model.py --revert 恢复最近一次备份。不应要求用户手翻 settings.json.bak.* 文件。应提醒重启 Claude Code。",
+      "assertions": [
+        "识别可直接用 set_cc_model.py --revert",
+        "不建议用户自己手动翻找 settings.json.bak.* 并拷贝",
+        "提醒重启 Claude Code 才生效",
+        "（可选）主动提议如果 revert 之后他又想切别的模型，可以怎么走"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "context-window-query",
+      "prompt": "帮我查一下 AA 榜单 top 5 模型的上下文窗口大小分别是多少？",
+      "expected_output": "应使用 fetch_aa_rankings.py --context --top 5 查看上下文窗口列，并对每个模型给出具体数值（如 1.0M、922K 等）。",
+      "assertions": [
+        "使用 fetch_aa_rankings.py 并加 --context 参数",
+        "输出中包含每个模型的上下文窗口数值",
+        "对数值做人类可读的格式化（如 1.0M 而不是 1000000）",
+        "给出 top 5 模型的对比结论"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "set-then-tag-context",
+      "prompt": "把 ppio/pa/claude-opus-4-7 设成我的 Claude Code Opus 档。配好之后顺便帮我看看它的上下文窗口是多少。",
+      "expected_output": "应先用 set_cc_model.py --dry-run 展示 diff，确认后真写。写入成功后用 tag_context.py 分析上下文窗口，给出具体数值。如果 >= 1M 应主动建议加 [1M] 标记。",
+      "assertions": [
+        "使用 set_cc_model.py --dry-run 展示变更后等待确认",
+        "写入成功后使用 tag_context.py 或 fetch_aa_rankings.py --context 查询上下文",
+        "报告 claude-opus-4-7 的上下文窗口为 1M tokens",
+        "主动建议加 [1M] 标记（解释用途：让 Claude Code 感知大窗口避免过早压缩）",
+        "提到 [1M] 是 Claude Code 专属标记"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "standalone-tag-context",
+      "prompt": "帮我检查一下我 Claude Code 配置里的模型，哪些支持 1M 上下文窗口？需要的话帮我加上 [1M] 标记。",
+      "expected_output": "应使用 tag_context.py 默认 dry-run 模式分析三个档位，报告哪些已标记、哪些需要加标记、哪些 AA 查不到。展示 diff 后等用户确认再 --apply。",
+      "assertions": [
+        "使用 tag_context.py（不手动编辑 settings.json）",
+        "默认先 dry-run 展示分析结果",
+        "报告每个档位的当前模型名和上下文窗口状态",
+        "对需要加标记的模型明确指出（显示 + 变更）",
+        "等用户确认后才 --apply 写入",
+        "提醒重启 Claude Code 才生效"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "cowork-provision-when-installed",
+      "prompt": "我想让 Claude Desktop 走公司 Mify 网关，帮我配一下。",
+      "expected_output": "应先用 check_claude_desktop.py 检测本机是否装了 Claude Desktop。如装了（本机场景），直接进 Phase C：用 install_cowork_config.py 默认 dry-run 展示 configLibrary diff（含 inferenceProvider / BaseUrl / ApiKey / disableDeploymentModeChooser / deploymentOrganizationUuid / coworkEgressAllowedHosts / inferenceModels），等用户确认后 --apply 真写。完成后提示用户完全退出（Cmd+Q）再重开 Claude.app。不要让用户手工改 mobileconfig、也不要误以为只能用 IT 推送 MDM profile。",
+      "assertions": [
+        "使用 check_claude_desktop.py 先做 pre-check",
+        "使用 install_cowork_config.py 写 ~/Library/Application Support/Claude-3p/configLibrary（不手改 mobileconfig / Managed Preferences）",
+        "默认先 dry-run 展示 configLibrary diff，等用户确认才 --apply",
+        "确认 BaseUrl 走 https://api.llm.mioffice.cn/anthropic（不是旧的 model.mify.ai.srv）",
+        "提醒用户完全退出 Claude.app 再重启才生效",
+        "强调 0-sudo / 无需 GUI 向导（Cowork 3P 模式零接触激活）"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "cowork-scenario-routing",
+      "prompt": "我想把 Mify 挂到桌面版 Claude 用，有啥办法？",
+      "expected_output": "应正确识别这是 Cowork/Claude Desktop provisioning 场景（不是 Claude Code 的 set_cc_model 场景）。用 check_claude_desktop.py + install_cowork_config.py 完成配置。描述时应使用 Claude Desktop / Cowork 3P 等规范名词，不把 Claude Desktop 与 Claude Code 混淆。",
+      "assertions": [
+        "识别为 Cowork / Claude Desktop 场景，而非 Claude Code 的 settings.json 修改场景",
+        "使用 check_claude_desktop.py + install_cowork_config.py 这套脚本（不是 set_cc_model.py）",
+        "使用正确的英文专有名词 Claude Desktop / Cowork（不翻成'桌面'/'桌面版'后就搞混）",
+        "给出 0-sudo 用户级 configLibrary 路径，不强求用户走 MDM / 管理员权限"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "cowork-after-cc-setup",
+      "prompt": "我刚刚用 set_cc_model.py 把 xiaomi/kimi-k2.5 挂到了 Claude Code 的 Sonnet 档，效果挺好。现在我想让 Claude Desktop 也走公司网关，这两个配置是互相独立的吧？",
+      "expected_output": "应说明 Claude Code 和 Claude Desktop 是两套独立配置：Claude Code 读 ~/.claude/settings.json 的 env；Claude Desktop 当前读 ~/Library/Application Support/Claude-3p/configLibrary/（MDM 场景另有 Managed Preferences）。两者互不干扰。然后走 Cowork provisioning 流程（check_claude_desktop.py → install_cowork_config.py dry-run → apply）。共用同一个 Mify API key，但写入位置不同。还要说明 Claude Desktop 只能放 Claude/Anthropic 路由，xiaomi/kimi-k2.5 这类非 Claude 模型只能用于 Claude Code。",
+      "assertions": [
+        "明确说明 Claude Code 和 Claude Desktop 是两套独立配置，互不干扰",
+        "指出两者配置文件路径不同（settings.json vs configLibrary）但可共用同一个 Mify API key",
+        "使用 check_claude_desktop.py + install_cowork_config.py 完成 Desktop 配置",
+        "默认先 dry-run 展示 configLibrary diff 再 --apply",
+        "不重复引导用户走 install_token.py（key 已经安装过了）"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "cowork-fix-existing-profile-models-only",
+      "prompt": "我 Claude Desktop 已经进 3P 了，但是模型选择器里之前配了 MiMo / Kimi，现在列表失效。帮我修一下，但别动我其他 profile 配置。",
+      "expected_output": "应使用 install_cowork_config.py --fix-models 先 dry-run，说明该模式只替换 active config 和旧兼容 claude_desktop_config.json 里的 inferenceModels，不改 base URL、api key、deploymentOrganizationUuid、egress hosts 或用户其他偏好。生产默认应落到 4 个已验证 Claude routes，并提示重启 Claude.app。",
+      "assertions": [
+        "使用 install_cowork_config.py --fix-models，而不是重新全量 provisioning",
+        "明确承诺只改 inferenceModels，保留其他 profile 配置",
+        "生产默认模型列表只包含 4 个已验证 Claude routes",
+        "不把 MiMo / Kimi / Qwen / DeepSeek / GPT 写入生产 inferenceModels",
+        "先 dry-run 展示模型 diff，等确认后才 --fix-models --apply",
+        "提醒完全退出并重启 Claude.app"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "cowork-fresh-profile-active-id-bootstrap",
+      "prompt": "我是一台新电脑，刚装 Claude Desktop，从来没进过 3P。现在没有 active id 吧？你这个 skill 能直接配好吗？",
+      "expected_output": "应说明当前脚本会写 ~/Library/Application Support/Claude-3p/configLibrary/_meta.json，并在没有 appliedId 时生成新的 UUID 作为 active config id，同时创建对应的 <uuid>.json。first-time 场景使用 install_cowork_config.py 默认 dry-run/--apply，不使用 --fix-models；完成后重启 Claude.app 验证 3P 和模型选择器。",
+      "assertions": [
+        "明确 active id 来自 configLibrary/_meta.json 的 appliedId",
+        "说明 fresh profile 没有 active id 时脚本会生成 UUID 并创建 _meta.json 与 <uuid>.json",
+        "first-time 场景使用 install_cowork_config.py --apply，而不是 --fix-models",
+        "配置路径是 ~/Library/Application Support/Claude-3p/configLibrary/",
+        "不依赖旧 user-level plist 或手工 mobileconfig",
+        "提醒 Claude.app 重启后才读取配置"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "cowork-mimo-explicit-test-only",
+      "prompt": "我们还是把 MIMO V2.5 Pro 也加进去测一下，能用就用，不能用就当验证网上说法。",
+      "expected_output": "应把 MiMo 作为显式 test-only 路径处理，使用 install_cowork_config.py --include-mimo-test，并清楚提示这会追加 xiaomi/mimo-v2.5-pro，Claude Desktop 1.6259.x 可能报 invalid_config。测试证据要区分官网文档、运行时日志、社区复现；测试完成后应恢复到不含 MiMo 的生产 4 Claude routes。",
+      "assertions": [
+        "使用 --include-mimo-test，且标为 test-only",
+        "明确追加的模型是 xiaomi/mimo-v2.5-pro",
+        "不把 MiMo 作为生产默认模型保留",
+        "记录/引用 invalid_config 或等价运行时失败证据",
+        "区分官方文档没有明说禁止非 Claude、运行时实际拒绝非 Claude 模型",
+        "测试后恢复到 4 个已验证 Claude routes"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "cowork-live-models-opt-in",
+      "prompt": "Mify 现在是不是有更多 claude 路由？直接把实时列表都写进 Claude Desktop 吧。",
+      "expected_output": "应先解释默认生产配置不用实时 catalog，而是使用已验证 4-route baseline；只有用户明确接受探索风险时才使用 install_cowork_config.py --live-models。live 模式也必须过滤为 Claude/Anthropic routes，不允许混入非 Claude Mify 模型，并建议 dry-run 先看列表。",
+      "assertions": [
+        "说明 --live-models 是 opt-in，不是默认生产路径",
+        "默认推荐仍是已验证 4-route baseline",
+        "live catalog 结果也必须过滤为 Claude/Anthropic routes",
+        "不混入 MiMo / Kimi / Qwen / DeepSeek / GPT 等非 Claude routes",
+        "先 dry-run 展示 live 模型列表再让用户确认是否 apply",
+        "提醒 live routes 未必都经过本机 UI 验证"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "cowork-non-claude-local-proxy",
+      "prompt": "我想在 Claude Desktop 里面用 MiMo，不想只用 Mify 上的 Claude 路由。能不能前台伪装成 Claude，后台实际打到 xiaomi/mimo-v2.5-pro？",
+      "expected_output": "应先说明 Claude Desktop 官方/稳定路径只接受 Claude/Anthropic routes，非 Claude 模型不能直接写进 inferenceModels；然后询问用户是否接受本机 HTTPS proxy 的工程绕法。用户同意后应使用 manage_claude_desktop_proxy.py install 先 dry-run，再确认后 install --apply。必须说明这和 Claude Code 的 set_cc_model.py 完全分开，Claude Code 可直接配真实 Mify 模型、不需要伪装。排障时应知道 Desktop 实际会请求 /v1/messages?beta=true 和 /v1/messages/count_tokens?beta=true，proxy 要对任何 /v1/* JSON POST 的 top-level model 做 normalize/映射、本地处理 count_tokens，并剥离 [1M]/[1m] 标签。端口默认 41414，但对外安装应支持被占用时自动选择空闲端口或让用户 --port 指定。",
+      "assertions": [
+        "明确告知官方 Desktop 3P 只支持 Claude/Anthropic route 作为稳定路径",
+        "不直接把 xiaomi/mimo-v2.5-pro 写进 Claude Desktop inferenceModels",
+        "先询问用户是否接受本机 proxy 绕过模型名校验",
+        "使用 manage_claude_desktop_proxy.py install dry-run，再等确认才 --apply",
+        "说明 Desktop 前台看到 xisheng/claude-*，后台 proxy 映射到真实 Mify 模型",
+        "明确 Claude Desktop proxy 与 Claude Code 配置分离，Claude Code 不需要伪装",
+        "知道模型改写应基于 /v1/* JSON POST 的 top-level model，而不是绑死在 /v1/messages",
+        "知道 /v1/messages/count_tokens?beta=true 应由 proxy 本地处理",
+        "知道 [1M]/[1m] 标签应在转发前剥离",
+        "知道 localhost 端口应可配置或自动选择空闲端口，不能假设 41414 永远可用"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "cowork-kiro-opt-in-channel",
+      "prompt": "我已经有 Claude Desktop 那套 Mify 本地 proxy 了，能不能再把 Kiro 的 Opus/Sonnet 也加进去，前缀用 kiro/ 开头？",
+      "expected_output": "应把 Kiro 作为本地 proxy 的 opt-in 通道处理，先说明它依赖 kiro-gateway-proxy skill 和 localhost:8001 的 Anthropic /v1/messages。用户确认后使用 manage_claude_desktop_proxy.py install dry-run 展示会加入 kiro/claude-opus-4-8、kiro/claude-sonnet-4-6、kiro/claude-haiku-4-5，确认后再 install --apply --enable-kiro。脚本应自动探测/启动 kiro-gateway-proxy，state/status/configure-desktop 后续保留 enable_kiro。",
+      "assertions": [
+        "明确 Kiro 是 opt-in 通道，不默认打开",
+        "模型前缀使用 kiro/*，不要占用 parko/* 或 xisheng/*",
+        "暴露 kiro/claude-opus-4-8、kiro/claude-sonnet-4-6、kiro/claude-haiku-4-5",
+        "后台分别改写到 claude-opus-4.8、claude-sonnet-4.6、claude-haiku-4.5",
+        "依赖 kiro-gateway-proxy skill 和 127.0.0.1:8001",
+        "先 dry-run 展示 Desktop config，等用户确认后才 --apply --enable-kiro",
+        "如果 8001 没跑但 skill 已安装，应自动调用 kiro-gateway-proxy 的 setup",
+        "status/configure-desktop 要保留 enable_kiro 状态",
+        "提醒 Kiro token 过期时打开 Kiro 刷新并重启服务"
+      ]
+    }
+  ]
+}

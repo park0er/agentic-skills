@@ -1,0 +1,252 @@
+<!doctype html>
+<!-- ============================================================
+  tariq-html · branch: exploration
+  Lay N (2-4) draft directions side-by-side. NO recommendation.
+  Use when the user says "give me three approaches" / "fan out".
+============================================================ -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[PAGE_TITLE — e.g. 三种方案 · 探索]</title>
+
+<!-- ============================================================
+  FONT — Mode B (default): Noto Serif SC + Noto Sans SC via Google Fonts.
+  CN typography renders consistently regardless of installed fonts.
+  For offline / archive output, swap to Mode C (base64 inline woff2);
+  see references/design-tokens.md § "Font strategy".
+============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- ── Mode C alternative · INLINE BASE64 ──
+     Comment out the 3 <link> lines above and uncomment the <style> block
+     below; replace each PASTE_BASE64_HERE with a pyftsubset woff2 subset
+     (see references/design-tokens.md § "Mode C — Base64 inline" for the recipe).
+<style>
+  @font-face { font-family: "Noto Serif SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Serif SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 400; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+  @font-face { font-family: "Noto Sans SC"; font-weight: 700; font-display: swap;
+    src: url(data:font/woff2;base64,PASTE_BASE64_HERE) format('woff2'); }
+</style>
+-->
+
+<style>
+  /* PALETTE — exploration is neutral by design.
+     Default Swiss; warm-paper alt for editorial brainstorms. */
+  /* ============================================================
+     TYPE — CJK-safe font stacks. Shared across both palettes.
+     Rationale: any family that may render Chinese must include a CJK
+     fallback (kami's rule). Mono especially — `Menlo, Consolas` alone
+     renders 中文注释 as tofu on Windows. See references/design-tokens.md.
+  ============================================================ */
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --safety-orange: #FF6B00;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --code-bg: #efefe9;
+  }
+  /* ── warm-paper alt:
+  :root {
+    --klein: #B85C3E; --lemon-yellow: #E3DACC; --safety-orange: #C2502C;
+    --ink: #141413; --mute: #87867F;
+    --bg: #FAF9F5; --card: #FFFFFF; --code-bg: #F0EEE6;
+  } ── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* CN density compensation — kami's rule: TsangerJinKai-class CN fonts
+     read denser than Latin; a hair of letter-spacing opens up paragraphs. */
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+  a { color: var(--klein); text-decoration: none; border-bottom: 1px solid currentColor; }
+  a:hover { background: var(--lemon-yellow); }
+  code { font-family: var(--font-mono); font-size: 0.88em; background: var(--code-bg); padding: 1px 5px; border-radius: 2px; }
+
+  .hero { padding: 48px 6vw 24px; border-bottom: 1px solid var(--ink); background: var(--card); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 16px; }
+  h1 { font-size: clamp(32px, 5vw, 56px); font-weight: 900; line-height: 1.05; letter-spacing: -0.02em; max-width: 22ch; }
+  h1 em { font-style: italic; color: var(--klein); }
+  .frame { font-size: 16px; color: var(--mute); margin-top: 16px; max-width: 720px; }
+
+  /* explicitly: NO TL;DR. exploration is neutral. */
+
+  section { padding: 48px 6vw; border-bottom: 1px solid var(--ink); }
+
+  /* directions: side-by-side panels */
+  .directions {
+    display: grid; gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+  .direction {
+    background: var(--card); border: 2px solid var(--ink); padding: 24px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+  }
+  .direction[data-d] { cursor: default; }
+  .direction.hot {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--klein);
+  }
+  .direction .num {
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--klein); font-weight: 700;
+  }
+  .direction h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+  .direction .summary { font-size: 13.5px; color: var(--mute); line-height: 1.5; }
+  .direction .demo {
+    background: var(--bg); border: 1px solid var(--ink);
+    padding: 16px; min-height: 140px; font-family: var(--font-mono);
+    font-size: 12px; line-height: 1.55; white-space: pre-wrap; overflow-x: auto;
+  }
+  .direction ul { padding-left: 20px; font-size: 13.5px; }
+  .direction ul li { margin: 4px 0; }
+  .direction ul li::marker { color: var(--klein); }
+
+  /* trade-off table — neutral, no rank column */
+  .trade {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--card); border: 2px solid var(--ink); margin-top: 16px;
+  }
+  .trade th, .trade td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; transition: background 120ms ease; }
+  .trade thead th { background: var(--ink); color: white; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .trade tbody tr:hover { background: #fffbde; }
+  .trade .hot { background: #fff5b8; }
+
+  .section-head { display: grid; grid-template-columns: 60px 1fr; gap: 16px; align-items: baseline; margin-bottom: 24px; }
+  .section-num { font-size: 36px; font-weight: 900; color: var(--klein); line-height: 1; letter-spacing: -0.04em; }
+  .section-title { font-size: 24px; font-weight: 800; }
+
+  footer { background: var(--ink); color: #aaa; padding: 24px 6vw; font-size: 12px; }
+</style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="eyebrow">[CONTEXT — e.g. RFC · DRAFT · 2026-05-16]</div>
+    <h1>[问题陈述] <em>有 [N] 种走法</em></h1>
+    <p class="frame">[FRAME — 2-3 句话说清要解决的问题、约束、什么不在范围内。注意：这页没有推荐，只把方向并排摆出来。]</p>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">[N] 种方向</div>
+    </div>
+    <div class="directions">
+
+      <article class="direction" data-d="1">
+        <div class="num">DIRECTION 01</div>
+        <h3>[方向一名字]</h3>
+        <p class="summary">[一句话定位]</p>
+        <div class="demo">[小代码片段 / 伪代码 / 关键调用 / mockup]</div>
+        <ul>
+          <li><b>优势</b> [关键优势]</li>
+          <li><b>代价</b> [关键代价]</li>
+          <li><b>未知</b> [还不确定的事]</li>
+        </ul>
+      </article>
+
+      <article class="direction" data-d="2">
+        <div class="num">DIRECTION 02</div>
+        <h3>[方向二名字]</h3>
+        <p class="summary">[一句话定位]</p>
+        <div class="demo">[小代码片段 / 伪代码 / 关键调用 / mockup]</div>
+        <ul>
+          <li><b>优势</b> [关键优势]</li>
+          <li><b>代价</b> [关键代价]</li>
+          <li><b>未知</b> [还不确定的事]</li>
+        </ul>
+      </article>
+
+      <article class="direction" data-d="3">
+        <div class="num">DIRECTION 03</div>
+        <h3>[方向三名字]</h3>
+        <p class="summary">[一句话定位]</p>
+        <div class="demo">[小代码片段 / 伪代码 / 关键调用 / mockup]</div>
+        <ul>
+          <li><b>优势</b> [关键优势]</li>
+          <li><b>代价</b> [关键代价]</li>
+          <li><b>未知</b> [还不确定的事]</li>
+        </ul>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div class="section-title">权衡对比</div>
+    </div>
+    <p style="font-size:12px;color:var(--mute);margin-bottom:12px;">把鼠标放到任一方向卡或表头上 → 对应列联动高亮。</p>
+    <table class="trade">
+      <thead>
+        <tr>
+          <th>维度</th>
+          <th data-d="1">方向一</th>
+          <th data-d="2">方向二</th>
+          <th data-d="3">方向三</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><b>实现复杂度</b></td><td data-d="1">低</td><td data-d="2">中</td><td data-d="3">高</td></tr>
+        <tr><td><b>性能上限</b></td><td data-d="1">—</td><td data-d="2">—</td><td data-d="3">—</td></tr>
+        <tr><td><b>未来可扩展</b></td><td data-d="1">—</td><td data-d="2">—</td><td data-d="3">—</td></tr>
+        <tr><td><b>维护成本</b></td><td data-d="1">—</td><td data-d="2">—</td><td data-d="3">—</td></tr>
+        <tr><td><b>适合场景</b></td><td data-d="1">—</td><td data-d="2">—</td><td data-d="3">—</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <div>[AUTHOR · DATE]</div>
+    <div>这是探索页 · 不是推荐 · 你来选</div>
+  </footer>
+
+  <script>
+    // Cross-highlight: hovering a direction card lights up its column in the trade-off table,
+    // and vice versa. Neutral by design — does NOT pick a winner.
+    (function () {
+      function set(d, on) {
+        document.querySelectorAll('[data-d="' + d + '"]').forEach(function (el) {
+          el.classList.toggle('hot', on);
+        });
+      }
+      document.querySelectorAll('[data-d]').forEach(function (el) {
+        var d = el.dataset.d;
+        el.addEventListener('mouseenter', function () { set(d, true); });
+        el.addEventListener('mouseleave', function () { set(d, false); });
+      });
+    })();
+  </script>
+
+</body>
+</html>

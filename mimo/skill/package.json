@@ -1,0 +1,19 @@
+{
+  "name": "mimo-eval-skill",
+  "version": "1.0.0",
+  "description": "MiMo AB 交互式评测 Skill",
+  "type": "module",
+  "scripts": {
+    "setup": "tsx src/setup.ts",
+    "start": "tsx src/start.ts",
+    "submit": "tsx src/submit.ts",
+    "web": "tsx src/web-start.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.0"
+  }
+}

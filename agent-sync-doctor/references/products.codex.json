@@ -1,0 +1,57 @@
+{
+  "product": "codex",
+  "icloudRoot": "~/Library/Mobile Documents/com~apple~CloudDocs/CodexSync",
+  "backupRoot": "~/CodexSyncBackups/doctor",
+  "statePath": "~/Library/Mobile Documents/com~apple~CloudDocs/CodexSync/.doctor/state/{hostname}.json",
+  "processPatterns": [
+    "Codex\\.app/Contents/MacOS/Codex",
+    "Codex\\.app/Contents/Resources/codex",
+    "codex app-server --listen stdio",
+    "codex resume",
+    "ccpocket-bridge",
+    "SkyComputerUseClient"
+  ],
+  "entries": [
+    {"id": "sessions", "type": "directory", "local": "~/.codex/sessions", "cloud": "dotcodex/sessions"},
+    {"id": "archived_sessions", "type": "directory", "local": "~/.codex/archived_sessions", "cloud": "dotcodex/archived_sessions"},
+    {"id": "rules", "type": "directory", "local": "~/.codex/rules", "cloud": "dotcodex/rules"},
+    {"id": "skills", "type": "directory", "local": "~/.codex/skills", "cloud": "dotcodex/skills"},
+    {"id": "memories", "type": "directory", "local": "~/.codex/memories", "cloud": "dotcodex/memories"},
+    {"id": "Diagnosis_Report", "type": "directory", "local": "~/.codex/Diagnosis_Report", "cloud": "dotcodex/Diagnosis_Report"},
+    {"id": "generated_images", "type": "directory", "local": "~/.codex/generated_images", "cloud": "dotcodex/generated_images"},
+    {"id": "pets", "type": "directory", "local": "~/.codex/pets", "cloud": "dotcodex/pets"},
+    {"id": "session_index.jsonl", "type": "file", "local": "~/.codex/session_index.jsonl", "cloud": "dotcodex/session_index.jsonl"},
+    {"id": "history.jsonl", "type": "file", "local": "~/.codex/history.jsonl", "cloud": "dotcodex/history.jsonl"},
+    {"id": "codex-global-state", "type": "file", "local": "~/.codex/.codex-global-state.json", "cloud": "dotcodex/.codex-global-state.json", "atomicReplaceRisk": true, "firstTimeMerge": "json-union"},
+    {"id": "codex-global-state-bak", "type": "file", "local": "~/.codex/.codex-global-state.json.bak", "cloud": "dotcodex/.codex-global-state.json.bak", "atomicReplaceRisk": true},
+    {"id": "config.toml", "type": "file", "local": "~/.codex/config.toml", "cloud": "dotcodex/config.toml"},
+    {"id": "AGENTS.md", "type": "file", "local": "~/.codex/AGENTS.md", "cloud": "dotcodex/AGENTS.md"},
+    {"id": "external_agent_session_imports", "type": "file", "local": "~/.codex/external_agent_session_imports.json", "cloud": "dotcodex/external_agent_session_imports.json"},
+    {"id": "migrate-to-codex-report", "type": "file", "local": "~/.codex/migrate-to-codex-report.txt", "cloud": "dotcodex/migrate-to-codex-report.txt"}
+  ],
+  "snapshot": {
+    "state5": {
+      "local": "~/.codex/state_5.sqlite",
+      "cloud": "snapshots/state_5/state_5.sqlite",
+      "walCheckpoint": true,
+      "firstTimeMerge": "sqlite-threads"
+    },
+    "codexDev": {
+      "local": "~/.codex/sqlite/codex-dev.db",
+      "cloud": "snapshots/sqlite/codex-dev.db",
+      "walCheckpoint": true
+    },
+    "auth": [
+      {"local": "~/.codex/auth.json", "cloud": "dotcodex/auth-backups/auth.json", "sensitive": true}
+    ],
+    "preferences": [
+      {"local": "~/Library/Preferences/com.openai.codex.plist", "cloud": "snapshots/preferences/com.openai.codex.plist", "sensitive": true},
+      {"local": "~/Library/Preferences/com.openai.chat.plist", "cloud": "snapshots/preferences/com.openai.chat.plist", "sensitive": true}
+    ]
+  },
+  "orphanCheck": {
+    "sqliteDb": "~/.codex/state_5.sqlite",
+    "query": "SELECT rollout_path FROM threads;",
+    "pathPrefix": "~/.codex/"
+  }
+}

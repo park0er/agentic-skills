@@ -1,0 +1,46 @@
+# Profile Enhancement Rules Template for Clash Verge
+# parko profile override → 对应 Clash Verge 中 parko 的 rules 增强
+#
+# 决策原则（2026-07-05 实测 + 飞书多维表格决策）：
+#   1. 小米办公网有透明代理：拦截所有 UDP:53 DNS 查询返回真实 IP（不污染），
+#      且 TCP 443 直连真实 IP 可达。被墙域名在办公网下走 DIRECT 比走代理快 3-4 倍。
+#   2. 但 mihomo 内部 DNS 绕过办公网透明拦截，默认拿 GFW 污染的假 IP。
+#      解决：被墙域名在 extend script 里加 nameserver-policy 指向 dhcp://en1，
+#      mihomo 直连小米 DNS 仍能被透明代理拦截，拿到真实 IP。
+#   3. 部分域名虽可达，但用户选择走 PROXY（如 google/anthropic/claude.ai）：
+#      - google：gemini 时好时坏，走代理更稳
+#      - anthropic.com/claude.ai：AI 用途统一走代理
+#      - wikipedia.org：用户选择走代理
+#   4. 内网 CNAME 终点（如 *.mi-dun.srv）必须显式 DIRECT，否则 mihomo 从 TLS SNI
+#      嗅探到该域名后会落到 MATCH,PROXY。
+#   5. 决策真源：飞书多维表格 app_token=XfzGbZm9fawyg6sRxitcn6gTnnh table_id=tblPc0MkdOGUhigm
+#      改动先改表格，再同步本文件。
+
+prepend:
+  # --- 被墙域名改 DIRECT（办公网透明代理可达，速度快 3-4 倍）---
+  # 配合 extend script 的 nameserver-policy(→ dhcp://en1) 拿真实 IP
+  - DOMAIN-SUFFIX,youtube.com,DIRECT
+  - DOMAIN-KEYWORD,youtube,DIRECT
+  # twitter keyword 不匹配 x.com，用 DOMAIN-SUFFIX,x.com 覆盖
+  - DOMAIN-SUFFIX,x.com,DIRECT
+  - DOMAIN-SUFFIX,t.me,DIRECT
+  - DOMAIN-SUFFIX,telegram.org,DIRECT
+  - DOMAIN-KEYWORD,telegram,DIRECT
+  # GitHub 全家桶（办公网天然可达）
+  - DOMAIN-SUFFIX,github.com,DIRECT
+  - DOMAIN-SUFFIX,githubusercontent.com,DIRECT
+  - DOMAIN-SUFFIX,github.io,DIRECT
+  # --- 内网 CNAME 终点 ---
+  # llm.mioffice.cn 等 CNAME 到 *.mi-dun.srv
+  # 必须显式 DIRECT，否则 mihomo 从 TLS SNI 嗅探到这个域名后会落到 MATCH,PROXY
+  - DOMAIN-SUFFIX,mi-dun.srv,DIRECT
+  - DOMAIN-SUFFIX,mi.srv,DIRECT
+  - DOMAIN-SUFFIX,alb.xiaomi.srv,DIRECT
+
+append: []
+
+delete:
+  # 删除原远程规则中的冲突 PROXY 条目（让 prepend 的 DIRECT 生效）
+  # 格式：仅需 "规则类型,值"（不加策略后缀）
+  - DOMAIN-SUFFIX,github.com
+  - DOMAIN-SUFFIX,githubusercontent.com
