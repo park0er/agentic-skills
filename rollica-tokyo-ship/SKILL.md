@@ -11,7 +11,9 @@ description: 公司 Rollica 仓库 main 打上版本 tag 之后，一键把这�
 2. CLI / Daemon：`rollica-cli-release` 的 `package-cli.sh <version> --upload`。GitHub Latest 必须是这个 CLI tag。
 3. 东京 Desktop（仅 darwin/arm64）：`deploy/tokyo-private/package.sh --upload`。制品进 tag `tokyo-desktop`，**不能**变成 GitHub Latest。版本号用这次 tag 的 `X.Y.Z`，不要另起一个号。上传前包里必须有可执行的 `app.asar.unpacked/resources/bin/multica`；没有就停，这包装上也不能跑本机 daemon。
 
-细节命令、排除项和验收见 [references/runbook.md](references/runbook.md)。开始前先读它。
+细节命令、排除项和验收见 [references/runbook.md](references/runbook.md)。开始前先读它。给人装客户端时只复制 runbook 里「给人装到东京」那一节，不要另写一套，也不要写版本号。
+
+不要在东京那台 Linux 服务器上再装一份客户端二进制。A1 上的 daemon 不在这套安装命令里。
 
 ## 版本从哪来
 
@@ -30,7 +32,7 @@ description: 公司 Rollica 仓库 main 打上版本 tag 之后，一键把这�
 ## 做完必须回报
 
 - A1：commit、`/health`、`/login`、backend 容器里的版本变量。
-- CLI：release URL，以及 Mac/Linux 一行安装命令。
-- Desktop：`latest-mac.yml` 的 version，以及东京 Desktop 一行安装命令。说明这行只装 `/Applications/Rollica Tokyo.app`。
-- Windows 没有 `install.sh`。指出 zip 名，并说明要在 PowerShell 里装，不要让用户去跑 bash。
+- CLI：release URL。Mac 和个人 Linux 用 runbook 里那条 `releases/latest/download/install.sh`，不要把版本号写进命令。
+- Desktop：`latest-mac.yml` 的 version，以及 runbook 里的东京 Desktop 安装命令。说明这行只装 `/Applications/Rollica Tokyo.app`。
+- Windows 用 runbook 里的 PowerShell，不要发 bash。
 - 若当前在 Rollica issue 会话里，把结果写回该 issue，署名模型名。无代码改动就不要开 PR。

@@ -1,0 +1,11 @@
+[Unit]
+Description=Oracle Cloud idle anti-reclaim (CPU+RAM pulse)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/oci-anti-reclaim.sh 10800 30 1280
+Nice=10
+CPUSchedulingPolicy=idle
+IOSchedulingClass=idle

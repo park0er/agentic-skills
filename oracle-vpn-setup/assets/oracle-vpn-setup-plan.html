@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>日区 Oracle 免费机 · 自建 VPN 搭建方案</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --font-sans:
+      "Noto Sans SC", "Helvetica Neue", "Inter", -apple-system, BlinkMacSystemFont,
+      "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB",
+      "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    --font-serif:
+      "Noto Serif SC", Charter, "Iowan Old Style", Georgia, "Times New Roman",
+      "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong",
+      serif;
+    --font-mono:
+      ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas,
+      "PingFang SC", "Source Han Sans SC",
+      monospace;
+  }
+  :root {
+    --klein: #002FA7;
+    --lemon-yellow: #FFED00;
+    --safety-orange: #FF6B00;
+    --lemon-green: #B5DF4A;
+    --ink: #111;
+    --mute: #666;
+    --bg: #fafaf7;
+    --card: #ffffff;
+    --code-bg: #efefe9;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 15px; line-height: 1.55; color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+  :lang(zh) body, html[lang^="zh"] body { letter-spacing: 0.01em; }
+  a { color: var(--klein); text-decoration: none; border-bottom: 1px solid currentColor; }
+  code, kbd {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 2px;
+  }
+  pre {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    background: var(--ink);
+    color: #e8e8e0;
+    padding: 16px 18px;
+    overflow-x: auto;
+    line-height: 1.6;
+    border-radius: 2px;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  nav.jump {
+    position: sticky; top: 0; z-index: 20;
+    padding: 14px 6vw;
+    background: var(--card);
+    border-bottom: 1px solid var(--ink);
+    display: flex; flex-wrap: wrap; gap: 8px;
+    font-size: 13px;
+  }
+  nav.jump a {
+    border: 1px solid var(--ink);
+    padding: 6px 12px;
+    border-radius: 999px;
+    color: var(--ink);
+    background: var(--card);
+    text-decoration: none;
+  }
+  nav.jump a.active, nav.jump a:hover { background: var(--klein); color: white; border-color: var(--klein); }
+
+  .hero { padding: 48px 6vw 24px; border-bottom: 1px solid var(--ink); background: var(--card); }
+  .eyebrow { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--mute); margin-bottom: 16px; }
+  h1 { font-size: clamp(30px, 5vw, 52px); font-weight: 900; line-height: 1.08; letter-spacing: -0.02em; max-width: 26ch; }
+  h1 em { font-style: italic; color: var(--klein); }
+  .goal { background: var(--lemon-yellow); border: 2px solid var(--ink); padding: 16px 20px; margin-top: 24px; font-size: 15.5px; max-width: 760px; }
+  .goal b { background: var(--ink); color: var(--lemon-yellow); padding: 2px 6px; }
+
+  section { padding: 48px 6vw; border-bottom: 1px solid var(--ink); }
+  .section-head { display: grid; grid-template-columns: 60px 1fr; gap: 16px; margin-bottom: 24px; align-items: baseline; }
+  .section-num { font-size: 36px; font-weight: 900; color: var(--klein); line-height: 1; letter-spacing: -0.04em; }
+  .section-title { font-size: 24px; font-weight: 800; }
+  .lede { font-size: 14.5px; color: var(--mute); margin-bottom: 20px; max-width: 760px; }
+
+  /* shape comparison cards */
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-bottom: 8px; }
+  .card {
+    background: var(--card); border: 2px solid var(--ink); padding: 22px;
+    transition: transform 120ms ease, box-shadow 120ms ease; position: relative;
+  }
+  .card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--klein); }
+  .card.recommended { border-color: var(--klein); }
+  .card.recommended::before {
+    content: "推荐"; position: absolute; top: -2px; right: -2px;
+    background: var(--klein); color: white; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.1em; padding: 4px 10px;
+  }
+  .card h3 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .card .spec { font-family: var(--font-mono); font-size: 12px; color: var(--klein); margin-bottom: 10px; }
+  .card p { font-size: 13.5px; color: var(--ink); }
+  .card ul { margin-top: 8px; padding-left: 18px; font-size: 13px; color: var(--mute); }
+  .card ul li { margin-bottom: 3px; }
+
+  /* timeline */
+  .timeline { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .milestone { border: 1.5px solid var(--ink); background: var(--card); padding: 16px; position: relative; }
+  .milestone .date { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--klein); font-weight: 700; }
+  .milestone .what { font-size: 15.5px; font-weight: 700; margin-top: 6px; line-height: 1.3; }
+  .milestone .deliv { font-size: 12.5px; color: var(--mute); margin-top: 8px; line-height: 1.45; }
+  .milestone.now { border-width: 3px; }
+
+  /* step blocks */
+  .steps { display: flex; flex-direction: column; gap: 14px; }
+  .step {
+    display: grid; grid-template-columns: 44px 1fr; gap: 16px;
+    border: 1.5px solid var(--ink); background: var(--card); padding: 18px 20px;
+  }
+  .step .idx { font-size: 22px; font-weight: 900; color: var(--klein); line-height: 1.1; }
+  .step h4 { font-size: 15.5px; font-weight: 800; margin-bottom: 6px; }
+  .step p { font-size: 13.5px; color: var(--ink); margin-bottom: 8px; }
+  .step p:last-child { margin-bottom: 0; }
+  .step .note { font-size: 12.5px; color: var(--mute); }
+
+  /* diagram */
+  .diagram {
+    background: var(--card); border: 2px solid var(--ink); padding: 24px;
+    display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start;
+  }
+  @media (max-width: 880px) { .diagram { grid-template-columns: 1fr; } }
+  .diagram .stage svg { max-width: 100%; height: auto; display: block; }
+  .diagram .caption { font-size: 12px; color: var(--mute); margin-top: 12px; }
+  .diagram .node { cursor: pointer; transition: transform 120ms ease; }
+  .diagram .node:hover { transform: translateY(-1px); }
+  .diagram .node.active rect { stroke: var(--klein); stroke-width: 3; }
+  .diagram .node text { pointer-events: none; user-select: none; }
+  .diagram aside.dpanel { position: sticky; top: 70px; border: 1.5px solid var(--ink); padding: 16px; min-height: 220px; }
+  .diagram aside.dpanel .hint { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--mute); margin-bottom: 8px; }
+  .diagram aside.dpanel h4 { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
+  .diagram aside.dpanel .meta { font-family: var(--font-mono); font-size: 10px; color: var(--klein); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .diagram aside.dpanel p { font-size: 12.5px; line-height: 1.5; }
+
+  /* risk table */
+  table.risk { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--card); border: 2px solid var(--ink); }
+  table.risk th, table.risk td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; }
+  table.risk thead th { background: var(--ink); color: white; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  table.risk .lvl { font-weight: 700; padding: 2px 8px; border: 1px solid var(--ink); display: inline-block; font-size: 11px; white-space: nowrap; }
+  .lvl.high { background: var(--safety-orange); color: white; border-color: var(--safety-orange); }
+  .lvl.med { background: var(--lemon-yellow); }
+  .lvl.low { background: var(--lemon-green); }
+
+  /* panel comparison matrix */
+  table.matrix { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 2px solid var(--ink); }
+  table.matrix th, table.matrix td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; }
+  table.matrix thead th { background: var(--ink); color: var(--card); font-weight: 700; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; user-select: none; }
+  table.matrix thead th:hover { background: var(--klein); }
+  table.matrix tbody tr:hover { background: #fffbde; }
+  table.matrix .rank { font-weight: 900; color: var(--klein); }
+
+  .avoid { border-left: 4px solid var(--safety-orange); padding: 12px 16px; background: var(--card); margin-bottom: 10px; }
+  .avoid .tag { font-size: 10px; letter-spacing: 0.15em; font-weight: 700; color: var(--safety-orange); text-transform: uppercase; }
+  .avoid p { font-size: 13.5px; margin-top: 4px; }
+
+  .questions { display: flex; flex-direction: column; gap: 8px; }
+  .question { display: grid; grid-template-columns: 40px 1fr; gap: 12px; padding: 12px 16px; border: 1px solid var(--ink); background: var(--card); cursor: pointer; transition: background 120ms ease, opacity 120ms ease; }
+  .question:hover { background: #fffbde; }
+  .question .n { font-size: 20px; font-weight: 900; color: var(--klein); line-height: 1; }
+  .question .q { font-size: 13.5px; }
+  .question.resolved { opacity: 0.45; background: var(--lemon-green); }
+  .question.resolved .q { text-decoration: line-through; }
+  .question.resolved::after { content: "✓ 已解"; font-size: 10px; letter-spacing: 0.1em; color: var(--ink); font-weight: 700; align-self: center; }
+
+  .tldr { display: grid; grid-template-columns: 110px 1fr; gap: 24px; padding: 22px; background: var(--lemon-yellow); border: 2px solid var(--ink); margin-top: 20px; }
+  .tldr .label { font-size: 11px; letter-spacing: 0.2em; font-weight: 700; text-transform: uppercase; }
+  .tldr .body { font-size: 15px; line-height: 1.55; }
+  .tldr .body strong { background: var(--ink); color: var(--lemon-yellow); padding: 2px 6px; font-weight: 700; }
+
+  footer { background: var(--ink); color: #aaa; padding: 24px 6vw; font-size: 12px; }
+  footer a { color: var(--lemon-green); border-bottom-color: var(--lemon-green); }
+</style>
+</head>
+<body>
+
+<nav class="jump">
+  <a href="#shape">01 机型选择</a>
+  <a href="#capacity">02 抢机策略</a>
+  <a href="#panel">03 面板选型</a>
+  <a href="#setup">04 搭建步骤</a>
+  <a href="#client">05 客户端接入</a>
+  <a href="#arch">06 链路结构</a>
+  <a href="#risk">07 风险表</a>
+  <a href="#questions">08 未决问题</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">SELF-HOSTED VPN · ORACLE FREE TIER · JP HOME REGION · 2026-07-03</div>
+  <h1>日区 Oracle 免费机<em>·</em>自建 VPN 完整搭建方案</h1>
+  <div class="goal">
+    <b>GOAL</b>
+    用已注册好的日区 Oracle Cloud 账号，申请 <strong>Always Free</strong> 的 Ampere A1 机型，装好 3x-ui 面板驱动 Xray-core，配置 VLESS + REALITY，接入本机已装好的 Clash Verge——全程零月费，且面板/订阅这类"次要暴露面"不触发 IP 级拉黑。
+  </div>
+  <div class="tldr">
+    <div class="label">TL;DR</div>
+    <div class="body">
+      机型选 <strong>VM.Standard.A1.Flex（4 vCPU / 24GB，ARM）</strong>，日区大概率遇到 <code>Out of host capacity</code>，用抢机脚本挂着跑；面板选 <strong>3x-ui</strong>（成熟稳定，社区大），协议用 <strong>VLESS + REALITY + Vision</strong>；面板本身不开公网端口，只走 SSH 隧道访问。
+    </div>
+  </div>
+</header>
+
+<section id="shape">
+  <div class="section-head">
+    <div class="section-num">01</div>
+    <div class="section-title">Oracle Always Free 机型选择</div>
+  </div>
+  <p class="lede">Oracle 的 Always Free 额度里有两类可选算力，日区（Japan Central / Osaka 或 Japan East / Tokyo，取决于你注册时选的 Home Region）都覆盖。选错机型不会花钱，但会影响后续能不能扛住多设备/多协议。</p>
+  <div class="cards">
+    <div class="card recommended">
+      <h3>VM.Standard.A1.Flex（Ampere ARM）</h3>
+      <div class="spec">最多 4 OCPU + 24 GB RAM · 可拆成多台小实例</div>
+      <p>这是目前 Always Free 里最强的选项，永久免费，不是试用额度。整租一台 4C24G 完全够用，一个人或者三五好友用 REALITY 节点绰绰有余，还能同时跑面板、简单的 Web 服务。</p>
+      <ul>
+        <li>ARM 架构，Xray-core / sing-box / 3x-ui 官方脚本均原生支持 ARM64</li>
+        <li>免费额度换算：3000 OCPU 小时 + 18000 GB 小时／月，4C24G 全月跑刚好打满不超</li>
+        <li>缺点：日区经常 <code>Out of host capacity</code>，需要抢</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>VM.Standard.E2.1.Micro（AMD 老款）</h3>
+      <div class="spec">1/8 OCPU + 1 GB RAM ×2 台</div>
+      <p>x86 架构的老免费机型，配置很低（1GB 内存跑面板+Xray 会比较吃紧，多人使用容易 OOM）。好处是几乎不用抢，注册后基本能秒开。</p>
+      <ul>
+        <li>x86 架构，兼容性问题最少，装什么都不用担心 ARM 兼容坑</li>
+        <li>1GB 内存建议只跑 Xray-core，面板用命令行脚本管理而非网页面板，省内存</li>
+        <li>可以两台 Micro 分别开在不同地区当"跳板+备用"，用来对冲 A1 被拉黑的风险</li>
+      </ul>
+    </div>
+  </div>
+  <p class="lede" style="margin-top:16px;">建议：<strong style="color:var(--ink);background:var(--lemon-yellow);padding:2px 6px;">主力用 A1.Flex 4C24G 跑 REALITY 节点，额度里剩余的 E2.1.Micro 白嫖一台当纯跳板/监控机</strong>，不占额外费用，两者互不冲突（Always Free 资源是叠加的，不是二选一）。</p>
+</section>
+
+<section id="capacity">
+  <div class="section-head">
+    <div class="section-num">02</div>
+    <div class="section-title">抢机策略：解决 Out of Host Capacity</div>
+  </div>
+  <p class="lede">日区（尤其 Tokyo）A1.Flex 免费额度长期紧张，创建实例时大概率第一次就会报错。这是容量问题，不是账号或权限问题，不用怀疑账号状态，耐心 + 脚本挂机即可。</p>
+  <div class="steps">
+    <div class="step">
+      <div class="idx">1</div>
+      <div>
+        <h4>先在控制台手动试 2~3 次</h4>
+        <p>Compute → Instances → Create Instance，Image 选 <code>Ubuntu 22.04 (aarch64)</code>，Shape 改成 <code>VM.Standard.A1.Flex</code>，OCPU 给满 4、内存给满 24。如果不同 Availability Domain 可选，每个都试一遍——同一区域不同 AD 的容量池是独立的。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div>
+        <h4>手动不行就上抢机脚本</h4>
+        <p>社区有现成的开源方案（如 <code>oci-arm-host-capacity</code>），原理是用 OCI CLI/API 按固定间隔自动重试 <code>LaunchInstance</code>，一旦某个瞬间容量池腾出空位就立刻抢下来，比人肉手点效率高得多。</p>
+        <p class="note">需要提前生成 OCI API Key（Profile → User Settings → API Keys），把脚本跑在你自己的 Mac 上或者一台常开的小机器上，通常几小时到一两天内能抢到。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">3</div>
+      <div>
+        <h4>实在抢不到的备选：换 Home Region 或先用 E2 过渡</h4>
+        <p>Home Region 创建后不可更改，如果长期抢不到，短期可以先用 E2.1.Micro 把 REALITY 节点跑起来过渡，A1 抢到后再平滑迁移配置（VLESS UUID / REALITY 密钥对可以直接复用，只是换了台机器）。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="panel">
+  <div class="section-head">
+    <div class="section-num">03</div>
+    <div class="section-title">面板选型：3x-ui 及其他选项</div>
+  </div>
+  <p class="lede">GUIDE.md 里提到的"协议是标准，软件是实现"同样适用于面板层——面板只是把网页点击翻译成 Xray-core/sing-box 配置文件，不参与实际转发。按维度对比：</p>
+  <table class="matrix" id="panel-matrix">
+    <thead>
+      <tr>
+        <th data-k="rank">推荐度</th>
+        <th data-k="name">面板</th>
+        <th data-k="backend">驱动内核</th>
+        <th data-k="maturity">成熟度</th>
+        <th data-k="footprint">资源占用</th>
+        <th data-k="note">备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="rank" data-v="1">★★★★★</td>
+        <td><strong>3x-ui</strong>（MHSanaei）</td>
+        <td>Xray-core</td>
+        <td data-v="3">社区最大，更新最活跃，中文资料最多</td>
+        <td data-v="2">中等（Web UI + 数据库）</td>
+        <td>REALITY/VLESS/Vision 全支持，多用户流量统计、订阅链接生成、证书自动续期都现成。<strong>本方案首选</strong>。</td>
+      </tr>
+      <tr>
+        <td class="rank" data-v="2">★★★☆☆</td>
+        <td>s-ui（alireza0）</td>
+        <td>sing-box</td>
+        <td data-v="2">较新，同作者系团队维护，功能迭代快但资料少</td>
+        <td data-v="2">中等</td>
+        <td>面板架构更现代，配置抽象层次更高；如果你后续想要 Hysteria2/TUIC 等 sing-box 独有协议，s-ui 是更自然的选择。</td>
+      </tr>
+      <tr>
+        <td class="rank" data-v="3">★★★☆☆</td>
+        <td>x-ui（alireza0 / 老牌 fork）</td>
+        <td>Xray-core</td>
+        <td data-v="3">最早的原始面板，多个 fork 并存（版本混乱）</td>
+        <td data-v="1">最轻（低内存机型友好）</td>
+        <td>功能更简，适合 E2.1.Micro 这种 1GB 内存机型；生态里 fork 太多，选错仓库容易装到不维护的版本。</td>
+      </tr>
+      <tr>
+        <td class="rank" data-v="4">★★☆☆☆</td>
+        <td>纯命令行（无面板，手写 Xray JSON）</td>
+        <td>Xray-core / sing-box</td>
+        <td data-v="3">最稳定（没有面板层 bug），但纯手工</td>
+        <td data-v="1">最省资源，无 Web 服务额外开销</td>
+        <td>最安全的选择——因为压根没有一个公网 Web 端口可以被扫描器识别成"这是一台代理机"。适合只服务自己 1~2 台设备、懒得管理多用户的场景。</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="lede" style="margin-top:14px;">结论：<strong style="color:var(--ink);background:var(--lemon-yellow);padding:2px 6px;">A1.Flex 上装 3x-ui</strong>——资源够用、生态成熟、遇到问题好搜索。但切记 GUIDE.md 风险地图里最重要的一条：<strong>面板的 Web 端口本身绝不能对公网开放</strong>，必须走 SSH 隧道访问（下面第 4 部分会给出具体命令）。</p>
+</section>
+
+<section id="setup">
+  <div class="section-head">
+    <div class="section-num">04</div>
+    <div class="section-title">全流程搭建步骤</div>
+  </div>
+  <div class="timeline" style="margin-bottom: 28px;">
+    <div class="milestone now">
+      <div class="date">STAGE 1</div>
+      <div class="what">申请到实例</div>
+      <div class="deliv">A1.Flex 4C24G 跑起来，SSH 能连上</div>
+    </div>
+    <div class="milestone">
+      <div class="date">STAGE 2</div>
+      <div class="what">系统加固 + 装 3x-ui</div>
+      <div class="deliv">防火墙规则、面板装好但不对公网开放</div>
+    </div>
+    <div class="milestone">
+      <div class="date">STAGE 3</div>
+      <div class="what">配置 VLESS + REALITY</div>
+      <div class="deliv">生成密钥对、选好伪装 SNI、建好入站</div>
+    </div>
+    <div class="milestone">
+      <div class="date">STAGE 4</div>
+      <div class="what">Clash Verge 接入验证</div>
+      <div class="deliv">Mac 上能连节点，YouTube 出口 IP 是东京</div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="idx">1</div>
+      <div>
+        <h4>创建实例时的关键选项</h4>
+        <p>Image: <code>Canonical Ubuntu 22.04 (aarch64)</code>（LTS，Xray/3x-ui 官方脚本对它测试最充分）。Boot Volume 用默认 50GB 即可（Always Free 额度含 200GB 块存储，够分给多台）。</p>
+        <p>网络：新建或复用 VCN，务必在创建时把 <strong>公网 IP 类型选 "Reserved public IP"（预留公网 IP）</strong>——这样重启实例 IP 不会变，避免以后重新分发配置。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div>
+        <h4>安全列表 / 防火墙：只开 443 和临时 SSH</h4>
+        <p>Oracle 的 VCN 有两层防火墙：控制台的 <strong>Security List / NSG</strong>，和实例内部的 <code>iptables</code>/<code>netfilter</code>（Oracle 的 Ubuntu 镜像默认内置了额外的 iptables 规则，容易踩坑忘记这层）。两层都要放行 443（REALITY 用）和 22（SSH 管理）。</p>
+        <pre><code># 实例内部，Ubuntu 镜像自带的 iptables 规则要手动加放行
+sudo iptables -I INPUT -p tcp --dport 443 -j ACCEPT
+sudo netfilter-persistent save   # 或 iptables-save 持久化
+
+# 面板监听端口（例如 2053）不对公网开——只在 Security List 里不开这个端口</code></pre>
+        <p class="note">控制台侧：VCN → Security Lists → Default Security List → Add Ingress Rule，Source CIDR <code>0.0.0.0/0</code>，Port 443，Protocol TCP。SSH 的 22 端口默认已经开着。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">3</div>
+      <div>
+        <h4>一键安装 3x-ui</h4>
+        <pre><code>sudo bash -c "$(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)"</code></pre>
+        <p>装完后脚本会打印面板的用户名/密码/端口，务必<strong>立刻用 <code>x-ui</code> 命令改成随机端口 + 强密码</strong>（脚本自带的交互菜单里有这个选项），别用默认值。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">4</div>
+      <div>
+        <h4>面板走 SSH 隧道访问，不开公网端口</h4>
+        <p>在你的 Mac 上，把面板端口通过 SSH 本地转发到本机，浏览器只访问 <code>localhost</code>，公网上这个端口对外呈现"关闭"状态：</p>
+        <pre><code># 假设面板端口是 2053，服务器 IP 是 x.x.x.x
+ssh -L 2053:localhost:2053 ubuntu@x.x.x.x
+
+# 然后在 Mac 浏览器打开
+http://localhost:2053</code></pre>
+        <p class="note">这一步对应 GUIDE.md 风险地图里的第 3 条——面板端口是最容易暴露"这是代理机"身份的信号，SSH 隧道让它在公网扫描器眼里始终是"未开放"。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">5</div>
+      <div>
+        <h4>在面板里新建 VLESS + REALITY 入站</h4>
+        <p>面板内 Inbounds → Add Inbound：协议选 <code>VLESS</code>，端口 <code>443</code>，安全选 <code>REALITY</code>，点 "Get New Cert"/生成密钥对（面板会自动生成 <code>private_key</code>/<code>public_key</code>/<code>short_id</code>）。伪装域名（<code>dest</code>/handshake server）先用 <code>www.apple.com:443</code> 起步——按 GUIDE.md 提到的经验，微软家的域名实测握手通但传数据有问题，苹果这类"纯静态、无复杂 CDN 逻辑"的域名兼容性更好。</p>
+        <p>Flow 选 <code>xtls-rprx-vision</code>，Client Fingerprint 选 <code>chrome</code>（对应 uTLS 伪装）。新建一个 Client，拿到它的 UUID。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="client">
+  <div class="section-head">
+    <div class="section-num">05</div>
+    <div class="section-title">Clash Verge 客户端接入</div>
+  </div>
+  <p class="lede">3x-ui 面板可以直接导出这个入站对应的分享链接/QR，或者手动在 Clash Verge 的配置里加一个 proxy 节点，字段对应关系如下：</p>
+  <pre><code>proxies:
+  - name: "oracle-jp-reality"
+    type: vless
+    server: <你的服务器公网IP或域名>
+    port: 443
+    uuid: <面板里生成的 Client UUID>
+    network: tcp
+    tls: true
+    flow: xtls-rprx-vision
+    servername: www.apple.com        # 对应 REALITY 的 SNI 伪装域名
+    reality-opts:
+      public-key: <面板生成的 public_key / pbk>
+      short-id: <面板生成的 short_id / sid>
+    client-fingerprint: chrome
+    udp: true</code></pre>
+  <p class="lede" style="margin-top:14px;">加进 Clash Verge 的订阅/自定义配置文件里的 <code>proxies</code> 列表，然后在你现有的分流规则组里把这个节点选进代理组即可。验证方式：切到这个节点后访问 <a href="https://www.whatismyip.com" target="_blank" rel="noopener">whatismyip.com</a>，出口 IP 应显示为东京。</p>
+  <p class="lede">如果你想要"举着牌子写清楚自己是谁"之外更省心的分发方式，也可以用面板的订阅链接功能——但按风险地图第 3 条建议，<strong>不要把订阅链接放在公网長期暴露</strong>，私下把面板导出的 JSON/YAML 片段直接发给自己（比如存进密码管理器）就够用，服务用户量小时没必要上订阅服务。</p>
+</section>
+
+<section id="arch">
+  <div class="section-head">
+    <div class="section-num">06</div>
+    <div class="section-title">整条链路结构</div>
+  </div>
+  <div class="diagram">
+    <div class="stage">
+      <svg viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#111"/>
+          </marker>
+        </defs>
+        <g class="node" data-k="mac" tabindex="0">
+          <rect x="16" y="90" width="150" height="80" fill="#fff" stroke="#111" stroke-width="2"/>
+          <text x="91" y="125" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700">Mac</text>
+          <text x="91" y="145" text-anchor="middle" font-family="sans-serif" font-size="11">Clash Verge</text>
+        </g>
+        <g class="node" data-k="vps" tabindex="0">
+          <rect x="305" y="90" width="150" height="80" fill="#FFED00" stroke="#111" stroke-width="2"/>
+          <text x="380" y="120" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700">Oracle VPS</text>
+          <text x="380" y="140" text-anchor="middle" font-family="sans-serif" font-size="11">Xray + 3x-ui</text>
+          <text x="380" y="157" text-anchor="middle" font-family="sans-serif" font-size="10">:443 REALITY</text>
+        </g>
+        <g class="node" data-k="target" tabindex="0">
+          <rect x="594" y="20" width="150" height="70" fill="#002FA7" stroke="#111" stroke-width="2"/>
+          <text x="669" y="50" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700" fill="#fff">YouTube 等</text>
+          <text x="669" y="68" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#fff">真实目标网站</text>
+        </g>
+        <g class="node" data-k="decoy" tabindex="0">
+          <rect x="594" y="170" width="150" height="70" fill="#B5DF4A" stroke="#111" stroke-width="2"/>
+          <text x="669" y="200" text-anchor="middle" font-family="sans-serif" font-size="13" font-weight="700">www.apple.com</text>
+          <text x="669" y="218" text-anchor="middle" font-family="sans-serif" font-size="10">防探测替身</text>
+        </g>
+        <line x1="166" y1="130" x2="305" y2="130" stroke="#111" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="455" y1="115" x2="594" y2="70" stroke="#111" stroke-width="2" marker-end="url(#arr)"/>
+        <line x1="455" y1="145" x2="594" y2="200" stroke="#111" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+      </svg>
+      <div class="caption">实线 = 真实客户端的正常代理路径；虚线 = 防火墙主动探测时被原样转发的"替身"路径。点击节点看每一环的职责。</div>
+    </div>
+    <aside class="dpanel">
+      <div class="hint">点击左侧节点 →</div>
+      <h4 id="dp-title">Mac</h4>
+      <div class="meta" id="dp-meta">client</div>
+      <p id="dp-body">Clash Verge 按分流规则决定哪些域名走代理，建立到 VPS 443 端口的 REALITY 隧道。</p>
+    </aside>
+  </div>
+</section>
+
+<section id="risk">
+  <div class="section-head">
+    <div class="section-num">07</div>
+    <div class="section-title">风险表（对应 GUIDE.md 风险地图）</div>
+  </div>
+  <table class="risk">
+    <thead>
+      <tr><th>风险</th><th>可能性</th><th>影响</th><th>缓解</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>IP 段信誉差被批量拉黑</b><br><span style="color:var(--mute);font-size:12px;">Oracle 免费机 IP 段是已知的"高风险段"</span></td>
+        <td><span class="lvl med">中</span></td>
+        <td><span class="lvl high">高</span></td>
+        <td>面板/订阅绝不公网暴露；出问题就换一个 Reserved IP 或重开实例（免费，不心疼）</td>
+      </tr>
+      <tr>
+        <td><b>面板端口被扫描识别</b></td>
+        <td><span class="lvl med">中</span></td>
+        <td><span class="lvl high">高</span></td>
+        <td>SSH 隧道访问，Security List 不开面板端口，本方案第 4 步已覆盖</td>
+      </tr>
+      <tr>
+        <td><b>闲置被回收</b><br><span style="color:var(--mute);font-size:12px;">CPU 使用率长期 &lt;10% 且闲置超过 7 天</span></td>
+        <td><span class="lvl low">低</span></td>
+        <td><span class="lvl med">中</span></td>
+        <td>有代理流量基本不会触发；如果长期不用，留一个轻量定时任务保活</td>
+      </tr>
+      <tr>
+        <td><b>伪装 SNI 选错导致连不通</b><br><span style="color:var(--mute);font-size:12px;">部分域名握手通但数据传不过去（CDN/ECH 不兼容）</span></td>
+        <td><span class="lvl med">中</span></td>
+        <td><span class="lvl low">低</span></td>
+        <td>先用 www.apple.com 起步测试；换 SNI 前用 curl/openssl 验证目标站行为</td>
+      </tr>
+      <tr>
+        <td><b>抢不到 A1.Flex 容量</b></td>
+        <td><span class="lvl high">高</span></td>
+        <td><span class="lvl low">低</span></td>
+        <td>用抢机脚本挂机重试；短期先用 E2.1.Micro 过渡</td>
+      </tr>
+      <tr>
+        <td><b>密钥/面板密码泄露</b></td>
+        <td><span class="lvl low">低</span></td>
+        <td><span class="lvl high">高</span></td>
+        <td>面板密码、REALITY 私钥不要写进任何会被分享的文档；一旦怀疑泄露，登录服务器立即轮换</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="questions" style="border-bottom: none;">
+  <div class="section-head">
+    <div class="section-num">08</div>
+    <div class="section-title">未决问题</div>
+  </div>
+  <div class="questions">
+    <div class="question"><div class="n">1</div><div class="q">要不要买一个真域名（.me/.net 等）指向 VPS？决定了要不要买，才能决定订阅链接怎么分发。</div></div>
+    <div class="question"><div class="n">2</div><div class="q">是否有其他人（家人/朋友）会共用这个节点？决定了要不要在 3x-ui 里多开几个 Client 并设置流量上限。</div></div>
+    <div class="question"><div class="n">3</div><div class="q">A1.Flex 抢机预计要等多久？如果长期抢不到，是否接受先用 E2.1.Micro 过渡两周。</div></div>
+  </div>
+  <p style="font-size:12px;color:var(--mute);margin-top:8px;">点击任意问题标记为已解 / 未解。</p>
+</section>
+
+<footer>
+  <div>SELF-HOSTED · JP ORACLE FREE TIER · 参考 GUIDE.md 原理文档 · 2026-07-03</div>
+</footer>
+
+<script>
+  window.SYS = {
+    mac:    { title: "Mac", meta: "client · Clash Verge", body: "按分流规则（DOMAIN-SUFFIX 等）判断该走代理还是直连，负责发起 REALITY 握手：SNI 填 www.apple.com，叠加 uTLS 伪装成 Chrome 指纹。" },
+    vps:    { title: "Oracle VPS", meta: "server · Xray-core + 3x-ui", body: "监听 443 端口。收到握手后验证暗号（REALITY 密钥交换）：暗号对 → 解出 VLESS 数据，代理到真实目标；暗号不对 → 原样转发给替身网站。3x-ui 只在这台机器上生成/管理配置，不参与实际转发。" },
+    target: { title: "真实目标网站", meta: "downstream · e.g. YouTube", body: "VPS 用自己的东京公网 IP 代替你去连接。目标网站看到的访问来源是 VPS 的 IP，不是你在国内的真实 IP。" },
+    decoy:  { title: "www.apple.com（防探测替身）", meta: "decoy · only for probes", body: "只有防火墙主动探测、暗号验证失败时才会用到这条路径。真实客户端的正常流量永远不会经过苹果的服务器——它只在'骗探测者'这个场景里被引用。" }
+  };
+  (function () {
+    var nodes = document.querySelectorAll(".diagram .node");
+    var T = document.getElementById("dp-title");
+    var M = document.getElementById("dp-meta");
+    var B = document.getElementById("dp-body");
+    function activate(n) {
+      nodes.forEach(function (x) { x.classList.remove("active"); });
+      n.classList.add("active");
+      var d = window.SYS[n.dataset.k]; if (!d) return;
+      T.textContent = d.title; M.textContent = d.meta; B.innerHTML = d.body;
+    }
+    nodes.forEach(function (n) {
+      n.addEventListener("click", function () { activate(n); });
+      n.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(n); }
+      });
+    });
+  })();
+
+  document.querySelectorAll('.question').forEach(function (q) {
+    q.addEventListener('click', function () { q.classList.toggle('resolved'); });
+  });
+
+  // sortable matrix
+  (function () {
+    var table = document.getElementById('panel-matrix');
+    if (!table) return;
+    var ths = table.querySelectorAll('thead th');
+    var tbody = table.querySelector('tbody');
+    ths.forEach(function (th, idx) {
+      th.addEventListener('click', function () {
+        var rows = Array.prototype.slice.call(tbody.querySelectorAll('tr'));
+        var asc = th.dataset.dir !== 'asc';
+        ths.forEach(function (t) { delete t.dataset.dir; });
+        th.dataset.dir = asc ? 'asc' : 'desc';
+        rows.sort(function (a, b) {
+          var ca = a.children[idx], cb = b.children[idx];
+          var va = ca.dataset.v !== undefined ? parseFloat(ca.dataset.v) : ca.textContent.trim();
+          var vb = cb.dataset.v !== undefined ? parseFloat(cb.dataset.v) : cb.textContent.trim();
+          if (typeof va === 'number' && typeof vb === 'number') return asc ? va - vb : vb - va;
+          return asc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+        });
+        rows.forEach(function (r) { tbody.appendChild(r); });
+      });
+    });
+  })();
+
+  // scroll-spy on jump nav
+  (function () {
+    var links = document.querySelectorAll('nav.jump a');
+    var secs = Array.prototype.map.call(links, function (a) { return document.querySelector(a.getAttribute('href')); });
+    window.addEventListener('scroll', function () {
+      var y = window.scrollY + 80;
+      var activeIdx = 0;
+      secs.forEach(function (s, i) { if (s && s.offsetTop <= y) activeIdx = i; });
+      links.forEach(function (a, i) { a.classList.toggle('active', i === activeIdx); });
+    });
+  })();
+</script>
+
+</body>
+</html>

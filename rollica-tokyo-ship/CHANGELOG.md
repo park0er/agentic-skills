@@ -1,5 +1,11 @@
 # rollica-tokyo-ship CHANGELOG
 
+## 2026-09-26 — tokyo-client-install-commands
+
+- 给人装到东京的命令收成一节：Mac/个人 Linux 用 latest install.sh，Windows 用 PowerShell 跟 Latest，Desktop 用 tokyo-desktop
+- 明确不在东京 Linux 服务器上再装客户端二进制
+- 新机器 profile 名用 tokyo；这台 iMac 已有的 a1 不要重名再建
+
 ## 2026-09-25 — desktop-asar-unpack-gate
 
 - 东京 Desktop 上传前必须有可执行的 `app.asar.unpacked/resources/bin/multica`，zip 清单里也要有

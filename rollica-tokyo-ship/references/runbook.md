@@ -90,13 +90,7 @@ backend 日志若 migration 失败，停在这里修，不要继续对外说部�
 gh api repos/park0er/rollica-cli/releases/latest --jq .tag_name   # 必须是 vX.Y.Z
 ```
 
-Mac / Linux 安装命令：
-
-```bash
-curl -fsSL https://github.com/park0er/rollica-cli/releases/download/vX.Y.Z/install.sh | bash
-```
-
-Windows 制品是 `multica-cli-X.Y.Z-windows-amd64.zip`。`install.sh` 在 Windows 上会直接退出。不要把 bash 命令发给 Windows 用户。
+发布验收只核对 GitHub Latest 是这次 CLI tag。给人安装时用下一节的命令，不要把 `vX.Y.Z` 写进安装地址。
 
 ## 3. 东京 Desktop（Apple Silicon）
 
@@ -122,13 +116,85 @@ ROLLICA_TOKYO_DESKTOP_VERSION=X.Y.Z \
 - GitHub `tokyo-desktop` 上的 `latest-mac.yml` version 等于 `X.Y.Z`
 - `releases/latest` 仍是 CLI tag，不是 `tokyo-desktop`
 
-安装命令（只覆盖 Rollica Tokyo.app）：
+已装过同一张证书的东京 App 可以走应用内更新。无签名旧包不能，必须重跑安装命令。同一版本号覆盖 zip 后，已经装过这一版的机器也不会弹出更新，同样要重跑。
+
+## 给人装到东京
+
+只服务东京私服 `http://141.147.189.28`。三选一，不要混用。不要在 A1 这台 Linux 服务器上再装客户端二进制。
+
+新机器的 CLI profile 名用 `tokyo`。这台 iMac 上已经有的那份 profile 名叫 `a1`，指的是同一台服务器，不要再为它建一个 `tokyo`。
+
+### Mac，以及个人 Linux 电脑
+
+终端，不是 Git Bash on Windows：
+
+```bash
+curl -fsSL https://github.com/park0er/rollica-cli/releases/latest/download/install.sh | bash
+```
+
+然后：
+
+```bash
+multica --profile tokyo setup self-host --server-url http://141.147.189.28 --app-url http://141.147.189.28
+multica --profile tokyo login --token
+multica --profile tokyo daemon start
+multica --profile tokyo daemon status
+```
+
+`install.sh` 在 Windows 上会直接退出。Mac 上公司 `Rollica.app` 里的 `multica` 不要用这条去替换。
+
+### Windows（64 位 Intel/AMD）
+
+PowerShell 5.1 或 7。不要用 Git Bash。骁龙 ARM 电脑没有对应包。
+
+```powershell
+$ErrorActionPreference = "Stop"
+$Repo = "park0er/rollica-cli"
+$Headers = @{ "User-Agent" = "rollica-tokyo-install" }
+$Release = Invoke-RestMethod -Headers $Headers -Uri "https://api.github.com/repos/$Repo/releases/latest"
+$Version = $Release.tag_name.TrimStart("v")
+$Dest = Join-Path $env:USERPROFILE ".rollica-cli\bin"
+$Config = Join-Path $env:USERPROFILE ".rollica-cli"
+New-Item -ItemType Directory -Force -Path $Dest, $Config | Out-Null
+$Zip = Join-Path $env:TEMP "multica-cli-$Version-windows-amd64.zip"
+$Url = "https://github.com/$Repo/releases/download/v$Version/multica-cli-$Version-windows-amd64.zip"
+Invoke-WebRequest -Headers $Headers -Uri $Url -OutFile $Zip -UseBasicParsing
+Expand-Archive -Path $Zip -DestinationPath $Dest -Force
+Set-Content -Path (Join-Path $Config "update-source") -Value $Repo -NoNewline
+$userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+if ($userPath -notlike "*$Dest*") {
+  [Environment]::SetEnvironmentVariable("Path", "$Dest;$userPath", "User")
+}
+$env:Path = "$Dest;$env:Path"
+[Environment]::SetEnvironmentVariable("ROLLICA_UPDATE_REPO", $Repo, "User")
+[Environment]::SetEnvironmentVariable("MULTICA_RELEASES_API", "https://api.github.com/repos/$Repo/releases/latest", "User")
+[Environment]::SetEnvironmentVariable("MULTICA_DAEMON_AUTO_UPDATE", "true", "User")
+$env:ROLLICA_UPDATE_REPO = $Repo
+$env:MULTICA_RELEASES_API = "https://api.github.com/repos/$Repo/releases/latest"
+$env:MULTICA_DAEMON_AUTO_UPDATE = "true"
+& "$Dest\multica.exe" --version
+```
+
+关掉窗口，新开一个 PowerShell，再：
+
+```powershell
+multica --profile tokyo setup self-host --server-url http://141.147.189.28 --app-url http://141.147.189.28
+multica --profile tokyo login --token
+multica --profile tokyo daemon start
+multica --profile tokyo daemon status
+```
+
+Windows 没有开机自启。电脑重启后要再执行一次 `multica --profile tokyo daemon start`。
+
+### 东京 Desktop（仅 Apple Silicon Mac）
+
+不要用 CLI 那条，也不要装到公司的 Rollica.app：
 
 ```bash
 curl -fsSL https://github.com/park0er/rollica-cli/releases/download/tokyo-desktop/install-desktop-tokyo.sh | bash
 ```
 
-已装过同一张证书的东京 App 可以走应用内更新。无签名旧包不能，必须重跑这行。
+装到 `/Applications/Rollica Tokyo.app`。第一次若被系统拦住：右键 → 打开。
 
 ## 顺序
 
